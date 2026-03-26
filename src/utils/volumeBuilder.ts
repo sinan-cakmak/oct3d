@@ -84,7 +84,7 @@ export function stackVolume(
  */
 export function extractBinaryVolume(
   volume: Uint8Array,
-  dims: [number, number, number],
+  _dims: [number, number, number],
   label: number
 ): Uint8Array {
   const binary = new Uint8Array(volume.length);

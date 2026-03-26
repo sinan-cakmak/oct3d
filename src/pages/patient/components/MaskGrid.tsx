@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { removeImage } from "@/db";
@@ -100,7 +100,7 @@ function MaskThumbnail({
   );
 }
 
-export default function MaskGrid({ images, patientId }: MaskGridProps) {
+export default function MaskGrid({ images, patientId: _patientId }: MaskGridProps) {
   const handleDelete = async (e: React.MouseEvent, image: PatientImage) => {
     e.stopPropagation();
     try {

@@ -13,7 +13,7 @@ interface ImageGridProps {
 
 export default function ImageGrid({
   images,
-  patientId,
+  patientId: _patientId,
   onImageClick,
 }: ImageGridProps) {
   const objectUrls = useMemo(() => {

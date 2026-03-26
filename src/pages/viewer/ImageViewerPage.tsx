@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { X, ZoomIn, ZoomOut, Maximize, ChevronLeft, ChevronRight } from "lucide-react";
@@ -25,7 +25,7 @@ export default function ImageViewerPage() {
   const {
     zoomLevel,
     imagePosition,
-    isPanning,
+    isPanning: _isPanning,
     handleZoomIn,
     handleZoomOut,
     handleFitToScreen,
