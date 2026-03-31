@@ -289,6 +289,7 @@ export default function Viewer3DPage() {
               dims={dims}
               sliceVisibility={sliceVisibility}
               clipRange={clipRange}
+              maxExtent={maxX}
             />
           </Suspense>
         </Canvas>

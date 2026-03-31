@@ -11,7 +11,8 @@ interface MeshLayerProps {
   sliceVisibility: Record<number, boolean>;
   zSpacing: number;
   totalSlices: number;
-  clipRange: [number, number]; // [minX, maxX] in world units
+  clipRange: [number, number];
+  maxExtent: number;
 }
 
 export default function MeshLayer({
@@ -25,7 +26,6 @@ export default function MeshLayer({
   totalSlices,
   clipRange,
 }: MeshLayerProps) {
-  // Enable local clipping on the renderer
   const { gl } = useThree();
   gl.localClippingEnabled = true;
 
@@ -49,9 +49,6 @@ export default function MeshLayer({
       }
     }
 
-    // Two clipping planes along the X axis (slice/depth direction):
-    // - clipMin faces +X: keeps geometry where x >= clipRange[0]
-    // - clipMax faces -X: keeps geometry where x <= clipRange[1]
     const clippingPlanes = [
       new THREE.Plane(new THREE.Vector3(1, 0, 0), -clipRange[0]),
       new THREE.Plane(new THREE.Vector3(-1, 0, 0), clipRange[1]),
@@ -66,7 +63,6 @@ export default function MeshLayer({
       roughness: 0.7,
       depthWrite: opacity >= 1.0,
       clippingPlanes,
-      clipShadows: true,
     });
 
     if (hasHidden && zSpacing > 0) {
@@ -74,7 +70,6 @@ export default function MeshLayer({
         shader.uniforms.uZSpacing = { value: zSpacing };
         shader.uniforms.uTotalSlices = { value: totalSlices };
         shader.uniforms.uHiddenSlices = { value: hiddenArray };
-
         shader.vertexShader = shader.vertexShader.replace(
           "#include <common>",
           `#include <common>\nvarying vec3 vWorldPos;`

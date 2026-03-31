@@ -5,6 +5,7 @@ import { Eye, EyeOff, X, Grid3X3 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { motion } from "framer-motion";
 import ETDRSCircularGrid from "./ETDRSCircularGrid";
+import CrossSectionSlider from "./CrossSectionSlider";
 import type { ETDRSVolumes } from "@/utils/etdrsCalculation";
 
 interface MeshInfo {
@@ -126,10 +127,10 @@ export default function Sidebar3D({
             <CardHeader className="pb-3">
               <CardTitle className="text-sm">Cross Section</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <Slider
-                value={[clipRange[0], clipRange[1]]}
-                onValueChange={(v) => setClipRange([v[0], v[1]])}
+            <CardContent className="space-y-1">
+              <CrossSectionSlider
+                value={clipRange}
+                onChange={setClipRange}
                 min={0}
                 max={maxExtent}
                 step={maxExtent / 200}
