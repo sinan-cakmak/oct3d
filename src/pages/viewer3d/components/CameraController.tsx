@@ -3,7 +3,11 @@ import { useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 
-export default function CameraController({ resetTrigger }: { resetTrigger: number }) {
+export default function CameraController({
+  resetTrigger,
+}: {
+  resetTrigger: number;
+}) {
   const { camera, scene } = useThree();
   const controlsRef = useRef<any>(null);
 
@@ -20,9 +24,13 @@ export default function CameraController({ resetTrigger }: { resetTrigger: numbe
       const size = box.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z);
       const fov = (camera as THREE.PerspectiveCamera).fov * (Math.PI / 180);
-      const dist = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 1.5;
+      const dist = Math.abs(maxDim / 2 / Math.tan(fov / 2)) * 0.45;
 
-      camera.position.set(center.x + dist * 0.6, center.y + dist * 0.4, center.z + dist * 0.6);
+      camera.position.set(
+        center.x + dist * 0.6,
+        center.y + dist * 0.4,
+        center.z + dist * 0.6,
+      );
       camera.lookAt(center);
 
       if (controlsRef.current) {
