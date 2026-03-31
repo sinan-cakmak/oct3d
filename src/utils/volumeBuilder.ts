@@ -159,3 +159,85 @@ export function interpolateZAxis(
     dims: [newDepth, height, width],
   };
 }
+
+/**
+ * Separable 3D Gaussian blur on a Float32Array volume.
+ *
+ * Smooths hard pixel boundaries into gradients so marching cubes
+ * can place vertices at interpolated positions, eliminating
+ * staircase artifacts.
+ *
+ * @param vol   Float32Array volume (flat, D×H×W)
+ * @param dims  [depth, height, width]
+ * @param sigma Gaussian sigma in voxels
+ */
+export function gaussianBlur3D(
+  vol: Float32Array,
+  dims: [number, number, number],
+  sigma: number = 1.0
+): Float32Array {
+  const [depth, height, width] = dims;
+
+  // Build 1D Gaussian kernel
+  const radius = Math.ceil(sigma * 2.5);
+  const kSize = 2 * radius + 1;
+  const kernel = new Float32Array(kSize);
+  let sum = 0;
+  for (let i = 0; i < kSize; i++) {
+    const d = i - radius;
+    kernel[i] = Math.exp(-(d * d) / (2 * sigma * sigma));
+    sum += kernel[i];
+  }
+  for (let i = 0; i < kSize; i++) kernel[i] /= sum;
+
+  let src = new Float32Array(vol);
+  let dst = new Float32Array(vol.length);
+
+  // Pass 1: blur along X (width)
+  for (let z = 0; z < depth; z++) {
+    for (let y = 0; y < height; y++) {
+      const base = z * height * width + y * width;
+      for (let x = 0; x < width; x++) {
+        let acc = 0;
+        for (let k = -radius; k <= radius; k++) {
+          const sx = Math.min(Math.max(x + k, 0), width - 1);
+          acc += src[base + sx] * kernel[k + radius];
+        }
+        dst[base + x] = acc;
+      }
+    }
+  }
+  [src, dst] = [dst, new Float32Array(vol.length)];
+
+  // Pass 2: blur along Y (height)
+  for (let z = 0; z < depth; z++) {
+    const sBase = z * height * width;
+    for (let x = 0; x < width; x++) {
+      for (let y = 0; y < height; y++) {
+        let acc = 0;
+        for (let k = -radius; k <= radius; k++) {
+          const sy = Math.min(Math.max(y + k, 0), height - 1);
+          acc += src[sBase + sy * width + x] * kernel[k + radius];
+        }
+        dst[sBase + y * width + x] = acc;
+      }
+    }
+  }
+  [src, dst] = [dst, new Float32Array(vol.length)];
+
+  // Pass 3: blur along Z (depth)
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      for (let z = 0; z < depth; z++) {
+        let acc = 0;
+        for (let k = -radius; k <= radius; k++) {
+          const sz = Math.min(Math.max(z + k, 0), depth - 1);
+          acc += src[sz * height * width + y * width + x] * kernel[k + radius];
+        }
+        dst[z * height * width + y * width + x] = acc;
+      }
+    }
+  }
+
+  return dst;
+}

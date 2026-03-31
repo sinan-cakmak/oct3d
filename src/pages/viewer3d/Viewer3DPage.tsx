@@ -4,7 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
 import { naturalSort } from "@/utils/naturalSort";
-import { loadMaskPixels, stackVolume, extractBinaryVolume, interpolateZAxis } from "@/utils/volumeBuilder";
+import { loadMaskPixels, stackVolume, extractBinaryVolume, interpolateZAxis, gaussianBlur3D } from "@/utils/volumeBuilder";
 import { getDefaultLabelColor, getDefaultLabelName } from "@/utils/colorPalette";
 import { calculateAllETDRSVolumes, type ETDRSVolumes } from "@/utils/etdrsCalculation";
 import { Button } from "@/components/ui/button";
@@ -155,14 +155,17 @@ export default function Viewer3DPage() {
 
           const binaryVolume = extractBinaryVolume(volume, volDims, labelId);
 
-          // Interpolate along Z axis for smoother meshes.
-          // Insert 6 intermediate slices between each pair (25 → 169 slices).
+          // Interpolate along Z axis for smoother depth transitions.
           const interpSteps = 6;
           const { volume: interpVolume, dims: interpDims } =
             interpolateZAxis(binaryVolume, volDims, interpSteps);
 
-          // Spacing order for marching cubes: [dim0=Z, dim1=Y, dim2=X]
-          // Z spacing shrinks by (steps + 1) after interpolation
+          // 3D Gaussian blur eliminates pixel-level staircase edges.
+          // sigma=3.0 aggressively smooths the hard 0/1 boundaries into
+          // gradients that marching cubes can interpolate smoothly.
+          const smoothVolume = gaussianBlur3D(interpVolume, interpDims, 3.0);
+
+          // Spacing: [dim0=Z, dim1=Y, dim2=X]
           const spacing: [number, number, number] = [
             scalings[2] / (interpSteps + 1),
             scalings[1],
@@ -194,13 +197,13 @@ export default function Viewer3DPage() {
             worker.postMessage(
               {
                 type: "generateMesh",
-                volume: interpVolume,
+                volume: smoothVolume,
                 dims: interpDims,
                 spacing,
                 labelId,
-                smoothingIterations: 30,
+                smoothingIterations: 15,
               },
-              [interpVolume.buffer]
+              [smoothVolume.buffer]
             );
           });
 
