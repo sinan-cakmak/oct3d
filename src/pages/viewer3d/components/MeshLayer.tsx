@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 interface MeshLayerProps {
@@ -10,6 +11,7 @@ interface MeshLayerProps {
   sliceVisibility: Record<number, boolean>;
   zSpacing: number;
   totalSlices: number;
+  clipRange: [number, number]; // [minX, maxX] in world units
 }
 
 export default function MeshLayer({
@@ -21,7 +23,12 @@ export default function MeshLayer({
   sliceVisibility,
   zSpacing,
   totalSlices,
+  clipRange,
 }: MeshLayerProps) {
+  // Enable local clipping on the renderer
+  const { gl } = useThree();
+  gl.localClippingEnabled = true;
+
   const geometry = useMemo(() => {
     if (positions.length === 0) return null;
     const geo = new THREE.BufferGeometry();
@@ -42,6 +49,14 @@ export default function MeshLayer({
       }
     }
 
+    // Two clipping planes along the X axis (slice/depth direction):
+    // - clipMin faces +X: keeps geometry where x >= clipRange[0]
+    // - clipMax faces -X: keeps geometry where x <= clipRange[1]
+    const clippingPlanes = [
+      new THREE.Plane(new THREE.Vector3(1, 0, 0), -clipRange[0]),
+      new THREE.Plane(new THREE.Vector3(-1, 0, 0), clipRange[1]),
+    ];
+
     const mat = new THREE.MeshStandardMaterial({
       color: new THREE.Color(color),
       transparent: true,
@@ -50,6 +65,8 @@ export default function MeshLayer({
       metalness: 0.3,
       roughness: 0.7,
       depthWrite: opacity >= 1.0,
+      clippingPlanes,
+      clipShadows: true,
     });
 
     if (hasHidden && zSpacing > 0) {
@@ -79,7 +96,7 @@ export default function MeshLayer({
 
     return mat;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, opacity, visibilityKey, zSpacing, totalSlices]);
+  }, [color, opacity, visibilityKey, zSpacing, totalSlices, clipRange[0], clipRange[1]]);
 
   if (!geometry || !visible) return null;
 

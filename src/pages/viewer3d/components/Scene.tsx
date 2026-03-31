@@ -32,6 +32,7 @@ export default function Scene({
   scalings,
   dims,
   sliceVisibility,
+  clipRange,
 }: {
   meshes: MeshData[];
   visibilityMap: Record<string, boolean>;
@@ -44,6 +45,7 @@ export default function Scene({
   scalings: [number, number, number];
   dims: [number, number, number];
   sliceVisibility: Record<number, boolean>;
+  clipRange: [number, number];
 }) {
   return (
     <>
@@ -68,6 +70,7 @@ export default function Scene({
           sliceVisibility={sliceVisibility}
           zSpacing={scalings[2]}
           totalSlices={slices.length}
+          clipRange={clipRange}
         />
       ))}
 

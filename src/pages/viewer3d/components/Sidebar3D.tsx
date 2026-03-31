@@ -36,6 +36,9 @@ export default function Sidebar3D({
   setSliceVisibility,
   volumes,
   eye,
+  clipRange,
+  setClipRange,
+  maxExtent,
 }: {
   meshes: MeshInfo[];
   visibilityMap: Record<string, boolean>;
@@ -51,6 +54,9 @@ export default function Sidebar3D({
   setSliceVisibility: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
   volumes: Record<string, ETDRSVolumes>;
   eye: string;
+  clipRange: [number, number];
+  setClipRange: (v: [number, number]) => void;
+  maxExtent: number;
 }) {
   if (!showSidebar) return null;
 
@@ -113,6 +119,28 @@ export default function Sidebar3D({
             ))}
           </CardContent>
         </Card>
+
+        {/* Cross-Section Clip */}
+        {maxExtent > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Cross Section</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Slider
+                value={[clipRange[0], clipRange[1]]}
+                onValueChange={(v) => setClipRange([v[0], v[1]])}
+                min={0}
+                max={maxExtent}
+                step={maxExtent / 200}
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+                <span>{(clipRange[0] / 1000).toFixed(1)} mm</span>
+                <span>{(clipRange[1] / 1000).toFixed(1)} mm</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Slices */}
         <Card>

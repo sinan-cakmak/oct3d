@@ -56,8 +56,12 @@ export default function Viewer3DPage() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [etdrsVolumes, setEtdrsVolumes] = useState<Record<string, ETDRSVolumes>>({});
+  const [clipRange, setClipRange] = useState<[number, number]>([0, 1]);
 
   const scalings = DEFAULT_SCALINGS;
+
+  // Total X extent in world units (depth axis = THREE.x)
+  const maxX = dims[0] * scalings[2];
 
   const toggleVisibility = useCallback((name: string) => {
     setVisibilityMap((prev) => ({ ...prev, [name]: !(prev[name] ?? true) }));
@@ -98,6 +102,7 @@ export default function Viewer3DPage() {
         setProgress(45);
         const { volume, dims: volDims, labels } = stackVolume(pixelSlices);
         setDims(volDims);
+        setClipRange([0, volDims[0] * scalings[2]]);
 
         // Build slice info
         const sliceInfo: SliceInfo[] = sortedMasks.map((img, i) => ({
@@ -283,6 +288,7 @@ export default function Viewer3DPage() {
               scalings={scalings}
               dims={dims}
               sliceVisibility={sliceVisibility}
+              clipRange={clipRange}
             />
           </Suspense>
         </Canvas>
@@ -343,6 +349,9 @@ export default function Viewer3DPage() {
         setSliceVisibility={setSliceVisibility}
         volumes={etdrsVolumes}
         eye={currentEye}
+        clipRange={clipRange}
+        setClipRange={setClipRange}
+        maxExtent={maxX}
       />
     </div>
   );
