@@ -93,3 +93,69 @@ export function extractBinaryVolume(
   }
   return binary;
 }
+
+/**
+ * Linearly interpolate a binary volume along the Z (depth/slice) axis.
+ *
+ * Inserts `steps` intermediate slices between each pair of original slices.
+ * For binary volumes the interpolated values are thresholded at 0.5, so
+ * marching cubes sees a smooth diagonal transition instead of a hard step.
+ *
+ * Example: 25 slices with steps=4 → 25 + 24*4 = 121 slices.
+ * Z spacing is divided by (steps + 1).
+ *
+ * @param binary     Binary volume (flat Uint8Array, D×H×W)
+ * @param dims       [depth, height, width]
+ * @param steps      Number of intermediate slices to insert between each pair
+ * @returns          { volume, dims } with the upsampled volume
+ */
+export function interpolateZAxis(
+  binary: Uint8Array,
+  dims: [number, number, number],
+  steps: number
+): { volume: Float32Array; dims: [number, number, number] } {
+  const [depth, height, width] = dims;
+  const sliceSize = height * width;
+
+  if (steps <= 0) {
+    const floatVol = new Float32Array(binary.length);
+    for (let i = 0; i < binary.length; i++) floatVol[i] = binary[i];
+    return { volume: floatVol, dims };
+  }
+
+  const newDepth = depth + (depth - 1) * steps;
+  const result = new Float32Array(newDepth * sliceSize);
+
+  for (let z = 0; z < depth - 1; z++) {
+    const srcA = z * sliceSize;
+    const srcB = (z + 1) * sliceSize;
+
+    // Copy original slice A (values will be 0.0 or 1.0)
+    const dstBase = z * (steps + 1) * sliceSize;
+    for (let i = 0; i < sliceSize; i++) {
+      result[dstBase + i] = binary[srcA + i];
+    }
+
+    // Generate intermediate slices via linear blend (no thresholding — keep
+    // smooth gradients so marching cubes can interpolate vertices properly)
+    for (let s = 1; s <= steps; s++) {
+      const t = s / (steps + 1); // 0 < t < 1
+      const dstOffset = (z * (steps + 1) + s) * sliceSize;
+      for (let i = 0; i < sliceSize; i++) {
+        result[dstOffset + i] = binary[srcA + i] * (1 - t) + binary[srcB + i] * t;
+      }
+    }
+  }
+
+  // Copy last original slice
+  const lastSrc = (depth - 1) * sliceSize;
+  const lastDst = (newDepth - 1) * sliceSize;
+  for (let i = 0; i < sliceSize; i++) {
+    result[lastDst + i] = binary[lastSrc + i];
+  }
+
+  return {
+    volume: result,
+    dims: [newDepth, height, width],
+  };
+}

@@ -4,7 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
 import { naturalSort } from "@/utils/naturalSort";
-import { loadMaskPixels, stackVolume, extractBinaryVolume } from "@/utils/volumeBuilder";
+import { loadMaskPixels, stackVolume, extractBinaryVolume, interpolateZAxis } from "@/utils/volumeBuilder";
 import { getDefaultLabelColor, getDefaultLabelName } from "@/utils/colorPalette";
 import { calculateAllETDRSVolumes, type ETDRSVolumes } from "@/utils/etdrsCalculation";
 import { Button } from "@/components/ui/button";
@@ -155,8 +155,19 @@ export default function Viewer3DPage() {
 
           const binaryVolume = extractBinaryVolume(volume, volDims, labelId);
 
+          // Interpolate along Z axis for smoother meshes.
+          // Insert 6 intermediate slices between each pair (25 → 169 slices).
+          const interpSteps = 6;
+          const { volume: interpVolume, dims: interpDims } =
+            interpolateZAxis(binaryVolume, volDims, interpSteps);
+
           // Spacing order for marching cubes: [dim0=Z, dim1=Y, dim2=X]
-          const spacing: [number, number, number] = [scalings[2], scalings[1], scalings[0]];
+          // Z spacing shrinks by (steps + 1) after interpolation
+          const spacing: [number, number, number] = [
+            scalings[2] / (interpSteps + 1),
+            scalings[1],
+            scalings[0],
+          ];
 
           const result = await new Promise<MeshData | null>((resolve) => {
             worker.onmessage = (e) => {
@@ -183,13 +194,13 @@ export default function Viewer3DPage() {
             worker.postMessage(
               {
                 type: "generateMesh",
-                volume: binaryVolume,
-                dims: volDims,
+                volume: interpVolume,
+                dims: interpDims,
                 spacing,
                 labelId,
-                smoothingIterations: 10,
+                smoothingIterations: 30,
               },
-              [binaryVolume.buffer]
+              [interpVolume.buffer]
             );
           });
 

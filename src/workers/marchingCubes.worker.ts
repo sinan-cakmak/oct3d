@@ -1,8 +1,8 @@
-import { marchingCubes, taubinSmooth } from "./marchingCubesImpl";
+import { marchingCubes, taubinSmooth, gaussianBlur3D } from "./marchingCubesImpl";
 
 export interface WorkerInput {
   type: "generateMesh";
-  volume: Uint8Array;
+  volume: Float32Array;
   dims: [number, number, number];
   spacing: [number, number, number];
   labelId: number;
@@ -28,7 +28,11 @@ self.onmessage = (e: MessageEvent<WorkerInput>) => {
   const { volume, dims, spacing, labelId, smoothingIterations } = e.data;
 
   try {
-    let { positions, indices } = marchingCubes(volume, dims, spacing);
+    // Anisotropic Gaussian blur: light XY smoothing for pixel aliasing,
+    // strong Z smoothing to bridge the large inter-slice gaps (~246μm).
+    // sigma is in voxel units: [sigmaX, sigmaY, sigmaZ]
+    const smoothedVolume = gaussianBlur3D(volume, dims, [1.5, 1.0, 3.0]);
+    let { positions, indices } = marchingCubes(smoothedVolume, dims, spacing, 0.5);
 
     if (positions.length === 0) {
       const result: WorkerOutput = {

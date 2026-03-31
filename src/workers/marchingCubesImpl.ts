@@ -345,15 +345,17 @@ const CORNER_OFFSETS: [number, number, number][] = [
 /**
  * Marching cubes isosurface extraction with vertex deduplication.
  *
- * @param volume  Binary volume (0 or 1), layout: volume[z*H*W + y*W + x]
+ * @param volume  Scalar volume, layout: volume[z*H*W + y*W + x]
  * @param dims    [depth, height, width]
  * @param spacing [zSpacing, ySpacing, xSpacing]
+ * @param isoValue Isosurface threshold (default 0.5)
  * @returns positions (flat xyz) and triangle indices
  */
 export function marchingCubes(
-  volume: Uint8Array,
+  volume: Float32Array | Uint8Array,
   dims: [number, number, number],
-  spacing: [number, number, number]
+  spacing: [number, number, number],
+  isoValue: number = 0.5
 ): { positions: Float32Array; indices: Uint32Array } {
   const [depth, height, width] = dims;
   const [zSpacing, ySpacing, xSpacing] = spacing;
@@ -400,10 +402,18 @@ export function marchingCubes(
       return existing;
     }
 
-    // Interpolate vertex position at midpoint for binary volumes
-    const px = ((x0 + x1) * 0.5) * xSpacing;
-    const py = ((y0 + y1) * 0.5) * ySpacing;
-    const pz = ((z0 + z1) * 0.5) * zSpacing;
+    // Interpolate vertex position along edge using scalar field values
+    const val0 = sample(x0, y0, z0);
+    const val1 = sample(x1, y1, z1);
+    const diff = val1 - val0;
+    let t = 0.5; // fallback to midpoint
+    if (Math.abs(diff) > 1e-6) {
+      t = (isoValue - val0) / diff;
+      t = Math.max(0, Math.min(1, t));
+    }
+    const px = (x0 + t * (x1 - x0)) * xSpacing;
+    const py = (y0 + t * (y1 - y0)) * ySpacing;
+    const pz = (z0 + t * (z1 - z0)) * zSpacing;
 
     const idx = vertexCount;
     positionsList.push(px, py, pz);
@@ -426,16 +436,16 @@ export function marchingCubes(
         const v6 = sample(x + 1, y + 1, z + 1);
         const v7 = sample(x, y + 1, z + 1);
 
-        // Compute cube index (threshold at 0.5 — for binary volumes, any value >= 1 is inside)
+        // Compute cube index — corner is "inside" when its value >= isoValue
         let cubeIndex = 0;
-        if (v0 > 0) cubeIndex |= 1;
-        if (v1 > 0) cubeIndex |= 2;
-        if (v2 > 0) cubeIndex |= 4;
-        if (v3 > 0) cubeIndex |= 8;
-        if (v4 > 0) cubeIndex |= 16;
-        if (v5 > 0) cubeIndex |= 32;
-        if (v6 > 0) cubeIndex |= 64;
-        if (v7 > 0) cubeIndex |= 128;
+        if (v0 >= isoValue) cubeIndex |= 1;
+        if (v1 >= isoValue) cubeIndex |= 2;
+        if (v2 >= isoValue) cubeIndex |= 4;
+        if (v3 >= isoValue) cubeIndex |= 8;
+        if (v4 >= isoValue) cubeIndex |= 16;
+        if (v5 >= isoValue) cubeIndex |= 32;
+        if (v6 >= isoValue) cubeIndex |= 64;
+        if (v7 >= isoValue) cubeIndex |= 128;
 
         // Skip fully inside or fully outside cubes
         if (cubeIndex === 0 || cubeIndex === 255) continue;
@@ -563,4 +573,108 @@ export function taubinSmooth(
   }
 
   return pos;
+}
+
+/**
+ * Separable 3D Gaussian blur with per-axis sigma for anisotropic smoothing.
+ * Converts hard binary boundaries into smooth gradients so that
+ * marching cubes can place vertices at sub-voxel positions.
+ *
+ * Mutates the input volume as scratch space to save memory.
+ *
+ * @param volume  Scalar volume (Float32Array)
+ * @param dims    [depth, height, width]
+ * @param sigma   Per-axis sigma [sigmaX, sigmaY, sigmaZ] or uniform sigma in voxel units
+ * @returns New smoothed Float32Array
+ */
+export function gaussianBlur3D(
+  volume: Float32Array,
+  dims: [number, number, number],
+  sigma: number | [number, number, number] = 1.0
+): Float32Array {
+  const [depth, height, width] = dims;
+  const size = depth * height * width;
+
+  const [sigmaX, sigmaY, sigmaZ] = typeof sigma === "number"
+    ? [sigma, sigma, sigma]
+    : sigma;
+
+  function buildKernel(s: number) {
+    const r = Math.ceil(s * 2);
+    const kSize = r * 2 + 1;
+    const k = new Float32Array(kSize);
+    let sum = 0;
+    for (let i = 0; i < kSize; i++) {
+      const d = i - r;
+      k[i] = Math.exp(-(d * d) / (2 * s * s));
+      sum += k[i];
+    }
+    for (let i = 0; i < kSize; i++) k[i] /= sum;
+    return { kernel: k, radius: r };
+  }
+
+  const kx = buildKernel(sigmaX);
+  const ky = buildKernel(sigmaY);
+  const kz = buildKernel(sigmaZ);
+
+  const temp = new Float32Array(size);
+
+  // Pass 1: blur along X (width) — volume → temp
+  for (let z = 0; z < depth; z++) {
+    for (let y = 0; y < height; y++) {
+      const base = z * height * width + y * width;
+      for (let x = 0; x < width; x++) {
+        let v = 0, w = 0;
+        for (let ki = -kx.radius; ki <= kx.radius; ki++) {
+          const nx = x + ki;
+          if (nx >= 0 && nx < width) {
+            const kw = kx.kernel[ki + kx.radius];
+            v += volume[base + nx] * kw;
+            w += kw;
+          }
+        }
+        temp[base + x] = v / w;
+      }
+    }
+  }
+
+  // Pass 2: blur along Y (height) — temp → volume (reuse as scratch)
+  for (let z = 0; z < depth; z++) {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = z * height * width + y * width + x;
+        let v = 0, w = 0;
+        for (let ki = -ky.radius; ki <= ky.radius; ki++) {
+          const ny = y + ki;
+          if (ny >= 0 && ny < height) {
+            const kw = ky.kernel[ki + ky.radius];
+            v += temp[z * height * width + ny * width + x] * kw;
+            w += kw;
+          }
+        }
+        volume[idx] = v / w;
+      }
+    }
+  }
+
+  // Pass 3: blur along Z (depth) — volume → temp
+  for (let z = 0; z < depth; z++) {
+    for (let y = 0; y < height; y++) {
+      for (let x = 0; x < width; x++) {
+        const idx = z * height * width + y * width + x;
+        let v = 0, w = 0;
+        for (let ki = -kz.radius; ki <= kz.radius; ki++) {
+          const nz = z + ki;
+          if (nz >= 0 && nz < depth) {
+            const kw = kz.kernel[ki + kz.radius];
+            v += volume[nz * height * width + y * width + x] * kw;
+            w += kw;
+          }
+        }
+        temp[idx] = v / w;
+      }
+    }
+  }
+
+  return temp;
 }
