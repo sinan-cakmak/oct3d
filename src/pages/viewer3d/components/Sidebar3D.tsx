@@ -104,10 +104,10 @@ export default function Sidebar3D({
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Opacity</span>
-                    <span>{Math.round((opacityMap[mesh.name] ?? 0.7) * 100)}%</span>
+                    <span>{Math.round((opacityMap[mesh.name] ?? 1.0) * 100)}%</span>
                   </div>
                   <Slider
-                    value={[(opacityMap[mesh.name] ?? 0.7) * 100]}
+                    value={[(opacityMap[mesh.name] ?? 1.0) * 100]}
                     onValueChange={(v) => updateOpacity(mesh.name, v[0] / 100)}
                     min={0} max={100} step={5}
                     disabled={!(visibilityMap[mesh.name] ?? true)}

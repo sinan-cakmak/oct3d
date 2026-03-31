@@ -224,7 +224,7 @@ export default function Viewer3DPage() {
         // Initialize visibility/opacity
         const vis: Record<string, boolean> = {};
         const opa: Record<string, number> = {};
-        results.forEach((m) => { vis[m.name] = true; opa[m.name] = 0.7; });
+        results.forEach((m) => { vis[m.name] = true; opa[m.name] = 1.0; });
         setVisibilityMap(vis);
         setOpacityMap(opa);
         setMeshes(results);

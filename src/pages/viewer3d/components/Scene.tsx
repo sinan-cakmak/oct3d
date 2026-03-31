@@ -68,7 +68,7 @@ export default function Scene({
           indices={mesh.indices}
           color={mesh.color}
           visible={visibilityMap[mesh.name] ?? true}
-          opacity={opacityMap[mesh.name] ?? 0.7}
+          opacity={opacityMap[mesh.name] ?? 1.0}
           sliceVisibility={sliceVisibility}
           zSpacing={scalings[2]}
           totalSlices={slices.length}
