@@ -81,7 +81,9 @@ export function calculateETDRSVolumes(
 
   for (let z = 0; z < depth; z++) {
     const realZ = z * zSpacing;
-    const dz = realZ - origin[1];
+    // Negate dz: z=0 is the most SUPERIOR scan, z increases toward INFERIOR.
+    // atan2(negative, dx) → negative angle → classified as inferior. Correct.
+    const dz = -(realZ - origin[1]);
     const zOffset = z * height * width;
 
     for (let x = 0; x < width; x++) {
