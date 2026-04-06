@@ -1,15 +1,18 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { X, ZoomIn, ZoomOut, Maximize, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, ZoomIn, ZoomOut, Maximize, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { useZoomPan } from "./hooks/useZoomPan";
 import { useImageNavigation } from "./hooks/useImageNavigation";
+import { useMaskOverlay } from "./hooks/useMaskOverlay";
 
 export default function ImageViewerPage() {
   const { id: patientId, eye, imageIndex: indexStr } = useParams();
   const navigate = useNavigate();
   const currentIndex = parseInt(indexStr || "0", 10);
   const currentEye = (eye as "OD" | "OS") || "OD";
+
+  const [showOverlay, setShowOverlay] = useState(true);
 
   const {
     sortedImages,
@@ -34,6 +37,22 @@ export default function ImageViewerPage() {
     handlePanMove,
     handlePanEnd,
   } = useZoomPan();
+
+  const { overlayUrl, hasMask, labelConfig } = useMaskOverlay(
+    patientId!,
+    currentImage?.filename,
+    currentEye
+  );
+
+  // Visible labels (non-zero, have config)
+  const visibleLabels = useMemo(
+    () =>
+      Object.entries(labelConfig)
+        .map(([id, cfg]) => ({ id: Number(id), ...cfg }))
+        .filter((l) => l.id !== 0)
+        .sort((a, b) => a.id - b.id),
+    [labelConfig]
+  );
 
   // Create object URL for current image
   const imageUrl = useMemo(() => {
@@ -100,19 +119,32 @@ export default function ImageViewerPage() {
         onMouseLeave={handlePanEnd}
         onWheel={handleWheel}
       >
-        <img
-          src={imageUrl}
-          alt={currentImage.filename}
-          className="max-w-none select-none"
+        <div
+          className="relative"
           style={{
             transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${zoomLevel})`,
             transformOrigin: "center center",
+            lineHeight: 0,
           }}
-          draggable={false}
-        />
+        >
+          <img
+            src={imageUrl}
+            alt={currentImage.filename}
+            className="max-w-none select-none block"
+            draggable={false}
+          />
+          {showOverlay && overlayUrl && (
+            <img
+              src={overlayUrl}
+              alt="mask edges"
+              className="absolute inset-0 w-full h-full select-none pointer-events-none"
+              draggable={false}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Zoom controls - bottom left */}
+      {/* Zoom controls + overlay toggle — bottom left */}
       <div className="absolute bottom-20 left-4 z-50 flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-lg p-1">
         <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10" onClick={handleZoomOut}>
           <ZoomOut className="h-4 w-4" />
@@ -124,9 +156,24 @@ export default function ImageViewerPage() {
         <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10" onClick={handleFitToScreen}>
           <Maximize className="h-4 w-4" />
         </Button>
+
+        {hasMask && visibleLabels.length > 0 && (
+          <>
+            <div className="w-px h-5 bg-white/20 mx-0.5" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 hover:bg-white/10 ${showOverlay ? "text-white" : "text-white/30"}`}
+              onClick={() => setShowOverlay((v) => !v)}
+              title={showOverlay ? "Hide edges" : "Show edges"}
+            >
+              <Layers className="h-4 w-4" />
+            </Button>
+          </>
+        )}
       </div>
 
-      {/* Navigation - bottom center */}
+      {/* Navigation — bottom center */}
       <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 bg-black/60 backdrop-blur-sm rounded-lg p-1">
         <Button variant="ghost" size="icon" className="h-8 w-8 text-white hover:bg-white/10" onClick={goToPrev} disabled={!hasPrev}>
           <ChevronLeft className="h-4 w-4" />
@@ -137,7 +184,22 @@ export default function ImageViewerPage() {
         </Button>
       </div>
 
-      {/* Thumbnail strip - bottom */}
+      {/* Legend — bottom right (above thumbnail strip), only when overlay is on */}
+      {hasMask && showOverlay && visibleLabels.length > 0 && (
+        <div className="absolute bottom-20 right-4 z-50 bg-black/60 backdrop-blur-sm rounded-lg p-2 space-y-1">
+          {visibleLabels.map((label) => (
+            <div key={label.id} className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-sm shrink-0"
+                style={{ backgroundColor: `rgb(${label.color[0]},${label.color[1]},${label.color[2]})` }}
+              />
+              <span className="text-white/80 text-xs">{label.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Thumbnail strip — bottom */}
       <div className="h-16 bg-black/80 backdrop-blur-sm border-t border-white/10 flex items-center gap-1 px-4 overflow-x-auto">
         {sortedImages.map((img, idx) => (
           <button
