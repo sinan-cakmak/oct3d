@@ -8,6 +8,7 @@ interface ImageUploadZoneProps {
   patientId: string;
   type: "oct" | "mask";
   eye?: "OD" | "OS";
+  hasImages?: boolean;
   onUploadComplete?: () => void;
 }
 
@@ -15,6 +16,7 @@ export default function ImageUploadZone({
   patientId,
   type,
   eye = "OD",
+  hasImages = false,
   onUploadComplete,
 }: ImageUploadZoneProps) {
   const [uploading, setUploading] = useState(false);
@@ -49,33 +51,40 @@ export default function ImageUploadZone({
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+      className={`border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${
+        hasImages ? "p-3" : "p-8"
+      } ${
         isDragActive
           ? "border-primary bg-primary/5"
           : "border-muted-foreground/25 hover:border-primary/50"
       } ${uploading ? "opacity-50 pointer-events-none" : ""}`}
     >
       <input {...getInputProps()} />
-      <div className="flex flex-col items-center gap-2">
-        {uploading ? (
-          <>
-            <Loader2 className="size-8 text-muted-foreground animate-spin" />
-            <p className="text-sm text-muted-foreground">Uploading...</p>
-          </>
-        ) : (
-          <>
-            <Upload className="size-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              {isDragActive
-                ? "Drop files here..."
-                : `Drag & drop ${type === "oct" ? "OCT" : "mask"} images, or click to browse`}
-            </p>
-            <p className="text-xs text-muted-foreground/60">
-              PNG, JPG files accepted
-            </p>
-          </>
-        )}
-      </div>
+      {uploading ? (
+        <div className="flex items-center justify-center gap-2">
+          <Loader2 className="size-4 text-muted-foreground animate-spin" />
+          <p className="text-sm text-muted-foreground">Uploading...</p>
+        </div>
+      ) : hasImages ? (
+        <div className="flex items-center justify-center gap-2">
+          <Upload className="size-4 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            {isDragActive ? "Drop files here..." : `Add more ${type === "oct" ? "OCT" : "mask"} images`}
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <Upload className="size-8 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            {isDragActive
+              ? "Drop files here..."
+              : `Drag & drop ${type === "oct" ? "OCT" : "mask"} images, or click to browse`}
+          </p>
+          <p className="text-xs text-muted-foreground/60">
+            PNG, JPG files accepted
+          </p>
+        </div>
+      )}
     </div>
   );
 }

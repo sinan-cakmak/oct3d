@@ -183,7 +183,6 @@ export default function PatientDetailPage() {
           {/* Tab content */}
           {activeTab === "oct" ? (
             <div className="space-y-4">
-              <ImageUploadZone patientId={id} type="oct" eye={selectedEye} />
               <ImageGrid
                 images={sortedOctImages}
                 patientId={id}
@@ -191,11 +190,12 @@ export default function PatientDetailPage() {
                   navigate(`/patient/${id}/view/${selectedEye}/${index}`)
                 }
               />
+              <ImageUploadZone patientId={id} type="oct" eye={selectedEye} hasImages={sortedOctImages.length > 0} />
             </div>
           ) : (
             <div className="space-y-4">
-              <MaskUploadZone patientId={id} patient={patient} eye={selectedEye} />
               <MaskGrid images={sortedMaskImages} patientId={id} />
+              <MaskUploadZone patientId={id} patient={patient} eye={selectedEye} hasImages={sortedMaskImages.length > 0} />
             </div>
           )}
         </div>
