@@ -85,8 +85,8 @@ export default function Sidebar3D({
         </div>
 
         {/* Layers */}
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="gap-2 py-3">
+          <CardHeader>
             <CardTitle className="text-sm">Layers ({meshes.length})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -123,8 +123,8 @@ export default function Sidebar3D({
 
         {/* Cross-Section Clip */}
         {maxExtent > 0 && (
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="gap-2 py-3">
+            <CardHeader>
               <CardTitle className="text-sm">Cross Section</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1">
@@ -144,8 +144,8 @@ export default function Sidebar3D({
         )}
 
         {/* Slices */}
-        <Card>
-          <CardHeader className="pb-3">
+        <Card className="gap-2 py-3">
+          <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">
                 Slices ({slices.filter((s) => s.valid).length}/{slices.length})
@@ -194,8 +194,8 @@ export default function Sidebar3D({
         </Card>
         {/* Volume Measurements */}
         {Object.keys(volumes).length > 0 && (
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="gap-2 py-3">
+            <CardHeader>
               <CardTitle className="text-sm">Volume Measurements</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
@@ -223,8 +223,8 @@ export default function Sidebar3D({
 
         {/* ETDRS Grid */}
         {Object.keys(volumes).length > 0 && (
-          <Card>
-            <CardContent className="pt-6">
+          <Card className="gap-2 py-3">
+            <CardContent>
               <ETDRSCircularGrid
                 volumes={volumes}
                 meshes={meshes}
