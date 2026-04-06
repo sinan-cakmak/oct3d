@@ -36,6 +36,7 @@ export default function Sidebar3D({
   sliceVisibility,
   setSliceVisibility,
   volumes,
+  thicknesses,
   eye,
   clipRange,
   setClipRange,
@@ -52,8 +53,11 @@ export default function Sidebar3D({
   setShowSliceGrid: (v: boolean) => void;
   slices: SliceInfo[];
   sliceVisibility: Record<number, boolean>;
-  setSliceVisibility: React.Dispatch<React.SetStateAction<Record<number, boolean>>>;
+  setSliceVisibility: React.Dispatch<
+    React.SetStateAction<Record<number, boolean>>
+  >;
   volumes: Record<string, ETDRSVolumes>;
+  thicknesses: Record<string, number>;
   eye: string;
   clipRange: [number, number];
   setClipRange: (v: [number, number]) => void;
@@ -258,6 +262,43 @@ export default function Sidebar3D({
             </CardContent>
           )}
         </Card>
+
+        {/* Average Thicknesses */}
+        {Object.keys(thicknesses).length > 0 && (
+          <Card className="gap-2 py-3">
+            <CardHeader>
+              <CardTitle className="text-sm">Average Thickness</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                {meshes
+                  .filter(
+                    (m) =>
+                      visibilityMap[m.name] !== false &&
+                      thicknesses[m.name] != null,
+                  )
+                  .map((mesh) => (
+                    <div
+                      key={mesh.name}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-2.5 h-2.5 rounded-sm"
+                          style={{ backgroundColor: mesh.color }}
+                        />
+                        <span className="text-xs font-medium">{mesh.name}</span>
+                      </div>
+                      <span className="text-xs font-mono font-medium">
+                        {thicknesses[mesh.name].toFixed(1)} µm
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Volume Measurements */}
         {Object.keys(volumes).length > 0 && (
           <Card className="gap-2 py-3">

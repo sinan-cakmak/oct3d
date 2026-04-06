@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { naturalSort } from "@/utils/naturalSort";
 import { loadMaskPixels, stackVolume } from "@/utils/volumeBuilder";
 import { getDefaultLabelColor, getDefaultLabelName } from "@/utils/colorPalette";
-import { calculateAllETDRSVolumes, type ETDRSVolumes } from "@/utils/etdrsCalculation";
+import { calculateAllETDRSVolumes, calculateAverageThicknesses, type ETDRSVolumes } from "@/utils/etdrsCalculation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Loader2 } from "lucide-react";
@@ -56,6 +56,7 @@ export default function Viewer3DPage() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [etdrsVolumes, setEtdrsVolumes] = useState<Record<string, ETDRSVolumes>>({});
+  const [thicknesses, setThicknesses] = useState<Record<string, number>>({});
   const [clipRange, setClipRange] = useState<[number, number]>([0, 1]);
   const [scalings] = useState<[number, number, number]>(DEFAULT_SCALINGS);
 
@@ -138,6 +139,12 @@ export default function Viewer3DPage() {
           volume, volDims, labels, labelNames, adjScalings, etdrsOrigin, currentEye
         );
         setEtdrsVolumes(vols);
+
+        // Step 2.6: Calculate average thicknesses
+        const thick = calculateAverageThicknesses(
+          volume, volDims, labels, labelNames, adjScalings[1]
+        );
+        setThicknesses(thick);
 
         // Step 3: Generate meshes via Web Worker
         setStatusText("Generating 3D meshes...");
@@ -337,6 +344,7 @@ export default function Viewer3DPage() {
         sliceVisibility={sliceVisibility}
         setSliceVisibility={setSliceVisibility}
         volumes={etdrsVolumes}
+        thicknesses={thicknesses}
         eye={currentEye}
         clipRange={clipRange}
         setClipRange={setClipRange}

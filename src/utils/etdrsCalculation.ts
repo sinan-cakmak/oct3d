@@ -147,3 +147,44 @@ export function calculateAllETDRSVolumes(
 
   return result;
 }
+
+/**
+ * Calculate average thickness for all labels in a multi-class volume.
+ *
+ * For each label the thickness at a column (z, x) is the number of
+ * voxels along Y that carry that label.  The average is taken over
+ * ALL D×W columns (including empty ones) and converted to µm.
+ *
+ * @returns  Record<labelName, averageThickness in µm>
+ */
+export function calculateAverageThicknesses(
+  volume: Uint8Array,
+  dims: [number, number, number],
+  labels: number[],
+  labelNames: Record<number, string>,
+  ySpacing: number
+): Record<string, number> {
+  const [depth, height, width] = dims;
+  const totalColumns = depth * width;
+  const result: Record<string, number> = {};
+
+  for (const label of labels) {
+    let totalVoxels = 0;
+
+    for (let z = 0; z < depth; z++) {
+      const zOff = z * height * width;
+      for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+          if (volume[zOff + y * width + x] === label) {
+            totalVoxels++;
+          }
+        }
+      }
+    }
+
+    const name = labelNames[label] || `Layer ${label}`;
+    result[name] = (totalVoxels / totalColumns) * ySpacing;
+  }
+
+  return result;
+}
