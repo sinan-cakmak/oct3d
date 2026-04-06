@@ -21,11 +21,13 @@ export default function ETDRSGrid({ origin, eye }: { origin: [number, number, nu
     ];
   };
 
-  // N/T positions depend on eye laterality
-  // In Three.js coords: THREE.x = depth (slice axis), THREE.z = width (image horizontal)
-  // For ETDRS: the nasal-temporal axis is along THREE.x (the slice/depth axis)
-  // OD: nasal = +X, temporal = -X
-  // OS: nasal = -X, temporal = +X
+  // Axis mapping:
+  // Axis mapping (matching reference project):
+  //   THREE.x = width (within B-scan) = Temporal → Nasal (OD)
+  //   THREE.z = depth (scan stacking)  = Superior → Inferior
+  //
+  // N/T labels go along THREE.x (within-scan horizontal axis)
+  // S/I labels go along THREE.z (scan stacking axis)
   const nasalPos: [number, number, number] = eye === "OD"
     ? [origin[0] + labelOffset, origin[1], origin[2]]
     : [origin[0] - labelOffset, origin[1], origin[2]];
@@ -49,18 +51,18 @@ export default function ETDRSGrid({ origin, eye }: { origin: [number, number, nu
         <Line key={a} points={createRadial(a)} color="#333333" lineWidth={2} />
       ))}
 
-      {/* N/T direction labels */}
+      {/* N/T along THREE.z (within B-scan width) */}
       <Html position={nasalPos} center style={{ pointerEvents: "none" }}>
         <div style={labelStyle}>N</div>
       </Html>
       <Html position={temporalPos} center style={{ pointerEvents: "none" }}>
         <div style={labelStyle}>T</div>
       </Html>
-      {/* S/I direction labels */}
-      <Html position={[origin[0], origin[1], origin[2] + labelOffset]} center style={{ pointerEvents: "none" }}>
+      {/* S/I along THREE.z (scan stacking direction) */}
+      <Html position={[origin[0], origin[1], origin[2] - labelOffset]} center style={{ pointerEvents: "none" }}>
         <div style={labelStyle}>S</div>
       </Html>
-      <Html position={[origin[0], origin[1], origin[2] - labelOffset]} center style={{ pointerEvents: "none" }}>
+      <Html position={[origin[0], origin[1], origin[2] + labelOffset]} center style={{ pointerEvents: "none" }}>
         <div style={labelStyle}>I</div>
       </Html>
 

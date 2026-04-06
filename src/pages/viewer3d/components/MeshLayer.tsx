@@ -49,9 +49,10 @@ export default function MeshLayer({
       }
     }
 
+    // Clip along THREE.z (depth/stacking axis)
     const clippingPlanes = [
-      new THREE.Plane(new THREE.Vector3(1, 0, 0), -clipRange[0]),
-      new THREE.Plane(new THREE.Vector3(-1, 0, 0), clipRange[1]),
+      new THREE.Plane(new THREE.Vector3(0, 0, 1), -clipRange[0]),
+      new THREE.Plane(new THREE.Vector3(0, 0, -1), clipRange[1]),
     ];
 
     const mat = new THREE.MeshStandardMaterial({
@@ -84,7 +85,7 @@ export default function MeshLayer({
         );
         shader.fragmentShader = shader.fragmentShader.replace(
           "#include <dithering_fragment>",
-          `int sliceIdx = int(floor(vWorldPos.x / uZSpacing));\nif (sliceIdx >= 0 && sliceIdx < uTotalSlices && uHiddenSlices[sliceIdx] > 0.5) discard;\n#include <dithering_fragment>`
+          `int sliceIdx = int(floor(vWorldPos.z / uZSpacing));\nif (sliceIdx >= 0 && sliceIdx < uTotalSlices && uHiddenSlices[sliceIdx] > 0.5) discard;\n#include <dithering_fragment>`
         );
       };
     }

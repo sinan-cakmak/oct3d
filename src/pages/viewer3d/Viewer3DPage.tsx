@@ -59,8 +59,8 @@ export default function Viewer3DPage() {
   const [clipRange, setClipRange] = useState<[number, number]>([0, 1]);
   const [scalings] = useState<[number, number, number]>(DEFAULT_SCALINGS);
 
-  // Total X extent in world units (depth axis = THREE.x)
-  const maxX = dims[0] * scalings[2];
+  // Total Z extent in world units (depth axis = THREE.z)
+  const maxZ = dims[0] * scalings[2];
 
   const toggleVisibility = useCallback((name: string) => {
     setVisibilityMap((prev) => ({ ...prev, [name]: !(prev[name] ?? true) }));
@@ -251,11 +251,11 @@ export default function Viewer3DPage() {
     );
   }
 
-  // ETDRS 3D grid origin: middle scan, y=0, middle pixel
+  // ETDRS 3D grid origin (matching MC output: x=width, y=height, z=depth)
   const origin: [number, number, number] = [
-    ((dims[0] - 1) / 2) * scalings[2], // middle scan → THREE.x
+    ((dims[2] - 1) / 2) * scalings[0], // middle pixel → THREE.x
     0,
-    ((dims[2] - 1) / 2) * scalings[0], // middle pixel → THREE.z
+    ((dims[0] - 1) / 2) * scalings[2], // middle scan → THREE.z
   ];
 
   return (
@@ -277,7 +277,7 @@ export default function Viewer3DPage() {
               dims={dims}
               sliceVisibility={sliceVisibility}
               clipRange={clipRange}
-              maxExtent={maxX}
+              maxExtent={maxZ}
             />
           </Suspense>
         </Canvas>
@@ -340,7 +340,7 @@ export default function Viewer3DPage() {
         eye={currentEye}
         clipRange={clipRange}
         setClipRange={setClipRange}
-        maxExtent={maxX}
+        maxExtent={maxZ}
       />
     </div>
   );
