@@ -85,6 +85,8 @@ export default function ImageViewerPage() {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't intercept arrows when the slider thumb has focus
+      if ((e.target as HTMLElement)?.getAttribute("role") === "slider") return;
       if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); goToPrev(); }
       else if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); goToNext(); }
       else if (e.key === "Escape") navigate(`/patient/${patientId}`);
@@ -207,6 +209,7 @@ export default function ImageViewerPage() {
                 setThickness(v[0]);
                 localStorage.setItem(THICKNESS_KEY, String(v[0]));
               }}
+              onValueCommit={() => (document.activeElement as HTMLElement)?.blur()}
               min={1}
               max={5}
               step={1}
