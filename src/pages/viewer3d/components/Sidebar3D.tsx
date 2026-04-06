@@ -74,11 +74,17 @@ export default function Sidebar3D({
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold">3D Visualization</h1>
-            <p className="text-sm text-muted-foreground mt-1">OCT Segmentation Layers</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              OCT Segmentation Layers
+            </p>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
-            <Button variant="ghost" size="icon" onClick={() => setShowSidebar(false)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSidebar(false)}
+            >
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -94,22 +100,38 @@ export default function Sidebar3D({
               <div key={mesh.name} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded border border-border" style={{ backgroundColor: mesh.color }} />
+                    <div
+                      className="w-4 h-4 rounded border border-border"
+                      style={{ backgroundColor: mesh.color }}
+                    />
                     <span className="text-sm font-medium">{mesh.name}</span>
                   </div>
-                  <Button size="sm" variant="ghost" onClick={() => toggleVisibility(mesh.name)} className="h-8 w-8 p-0">
-                    {visibilityMap[mesh.name] ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => toggleVisibility(mesh.name)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {visibilityMap[mesh.name] ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    )}
                   </Button>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Opacity</span>
-                    <span>{Math.round((opacityMap[mesh.name] ?? 1.0) * 100)}%</span>
+                    <span>
+                      {Math.round((opacityMap[mesh.name] ?? 1.0) * 100)}%
+                    </span>
                   </div>
                   <Slider
                     value={[(opacityMap[mesh.name] ?? 1.0) * 100]}
                     onValueChange={(v) => updateOpacity(mesh.name, v[0] / 100)}
-                    min={0} max={100} step={5}
+                    min={0}
+                    max={100}
+                    step={5}
                     disabled={!(visibilityMap[mesh.name] ?? true)}
                   />
                 </div>
@@ -136,8 +158,8 @@ export default function Sidebar3D({
                 step={maxExtent / 200}
               />
               <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-                <span>{(clipRange[0] / 1000).toFixed(1)} mm</span>
-                <span>{(clipRange[1] / 1000).toFixed(1)} mm</span>
+                <span>{clipRange[0].toFixed(1)} µm</span>
+                <span>{clipRange[1].toFixed(1)} µm</span>
               </div>
             </CardContent>
           </Card>
@@ -164,28 +186,72 @@ export default function Sidebar3D({
           {showSliceGrid && (
             <CardContent className="pt-0 space-y-2">
               <div className="flex gap-1">
-                <Button size="sm" variant="outline" className="h-6 text-[10px] flex-1"
-                  onClick={() => { const m: Record<number, boolean> = {}; slices.forEach((s) => (m[s.index] = true)); setSliceVisibility(m); }}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 text-[10px] flex-1"
+                  onClick={() => {
+                    const m: Record<number, boolean> = {};
+                    slices.forEach((s) => (m[s.index] = true));
+                    setSliceVisibility(m);
+                  }}
+                >
                   Show All
                 </Button>
-                <Button size="sm" variant="outline" className="h-6 text-[10px] flex-1"
-                  onClick={() => { const m: Record<number, boolean> = {}; slices.forEach((s) => (m[s.index] = false)); setSliceVisibility(m); }}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 text-[10px] flex-1"
+                  onClick={() => {
+                    const m: Record<number, boolean> = {};
+                    slices.forEach((s) => (m[s.index] = false));
+                    setSliceVisibility(m);
+                  }}
+                >
                   Hide All
                 </Button>
-                <Button size="sm" variant="outline" className="h-6 text-[10px] flex-1"
-                  onClick={() => { const m: Record<number, boolean> = {}; slices.forEach((s) => (m[s.index] = s.valid)); setSliceVisibility(m); }}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-6 text-[10px] flex-1"
+                  onClick={() => {
+                    const m: Record<number, boolean> = {};
+                    slices.forEach((s) => (m[s.index] = s.valid));
+                    setSliceVisibility(m);
+                  }}
+                >
                   Valid Only
                 </Button>
               </div>
               <div className="max-h-64 overflow-y-auto space-y-0.5">
                 {slices.map((slice) => (
-                  <div key={slice.index} className="flex items-center gap-1.5 text-xs">
-                    <Button size="sm" variant="ghost" className="h-5 w-5 p-0 shrink-0"
-                      onClick={() => setSliceVisibility((prev) => ({ ...prev, [slice.index]: !(prev[slice.index] ?? true) }))}>
-                      {(sliceVisibility[slice.index] ?? true) ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3 text-muted-foreground" />}
+                  <div
+                    key={slice.index}
+                    className="flex items-center gap-1.5 text-xs"
+                  >
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-5 w-5 p-0 shrink-0"
+                      onClick={() =>
+                        setSliceVisibility((prev) => ({
+                          ...prev,
+                          [slice.index]: !(prev[slice.index] ?? true),
+                        }))
+                      }
+                    >
+                      {(sliceVisibility[slice.index] ?? true) ? (
+                        <Eye className="h-3 w-3" />
+                      ) : (
+                        <EyeOff className="h-3 w-3 text-muted-foreground" />
+                      )}
                     </Button>
-                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${slice.valid ? "bg-green-500" : "bg-red-500"}`} />
-                    <span className="font-mono truncate">{slice.filename.replace(/\.[^.]+$/, "")}</span>
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${slice.valid ? "bg-green-500" : "bg-red-500"}`}
+                    />
+                    <span className="font-mono truncate">
+                      {slice.filename.replace(/\.[^.]+$/, "")}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -201,17 +267,26 @@ export default function Sidebar3D({
             <CardContent className="pt-0">
               <div className="space-y-2">
                 {meshes
-                  .filter((m) => visibilityMap[m.name] !== false && volumes[m.name])
+                  .filter(
+                    (m) => visibilityMap[m.name] !== false && volumes[m.name],
+                  )
                   .map((mesh) => {
                     const vol = volumes[mesh.name];
                     return (
                       <div key={mesh.name} className="space-y-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1.5">
-                            <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: mesh.color }} />
-                            <span className="text-xs font-medium">{mesh.name}</span>
+                            <div
+                              className="w-2.5 h-2.5 rounded-sm"
+                              style={{ backgroundColor: mesh.color }}
+                            />
+                            <span className="text-xs font-medium">
+                              {mesh.name}
+                            </span>
                           </div>
-                          <span className="text-xs font-mono font-medium">{vol.total.toFixed(2)} nL</span>
+                          <span className="text-xs font-mono font-medium">
+                            {vol.total.toFixed(2)} nL
+                          </span>
                         </div>
                       </div>
                     );
