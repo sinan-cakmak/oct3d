@@ -7,20 +7,10 @@ interface ThemeState {
   toggleTheme: () => void;
 }
 
-const getDefaultTheme = () => {
-  if (typeof window !== "undefined" && window.matchMedia) {
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-    return prefersDark ? "dark" : "light";
-  }
-  return "light";
-};
-
 const useThemeStore = create<ThemeState>()(
   persist<ThemeState>(
     (set) => ({
-      theme: getDefaultTheme(),
+      theme: "light",
 
       setTheme: (theme: string) => set({ theme }),
 
