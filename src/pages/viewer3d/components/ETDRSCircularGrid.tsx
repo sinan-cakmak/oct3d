@@ -44,7 +44,7 @@ export default function ETDRSCircularGrid({
     return (
       <div className="flex flex-col items-center gap-0.5">
         {data.map((d) => (
-          <div key={d.name} className="text-[11px] font-medium leading-tight" style={{ color: d.color }}>
+          <div key={d.name} className="text-[10px] font-medium leading-tight" style={{ color: d.color }}>
             {d.value}
           </div>
         ))}
@@ -55,10 +55,10 @@ export default function ETDRSCircularGrid({
   const getLineCoords = (angleDeg: number, innerR: number, outerR: number) => {
     const rad = (angleDeg * Math.PI) / 180;
     return {
-      x1: 140 + innerR * Math.cos(rad),
-      y1: 140 + innerR * Math.sin(rad),
-      x2: 140 + outerR * Math.cos(rad),
-      y2: 140 + outerR * Math.sin(rad),
+      x1: 180 + innerR * Math.cos(rad),
+      y1: 180 + innerR * Math.sin(rad),
+      x2: 180 + outerR * Math.cos(rad),
+      y2: 180 + outerR * Math.sin(rad),
     };
   };
 
@@ -66,14 +66,14 @@ export default function ETDRSCircularGrid({
     <div className="w-full flex flex-col items-center">
       <h3 className="text-sm font-semibold mb-4">ETDRS Volumes (nL)</h3>
 
-      <div className="relative w-[280px] h-[280px]">
+      <div className="relative w-[360px] h-[360px]">
         {/* SVG Grid */}
-        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 280 280">
-          <circle cx="140" cy="140" r="35" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground" />
-          <circle cx="140" cy="140" r="80" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground" />
-          <circle cx="140" cy="140" r="130" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground" />
+        <svg className="absolute inset-0 w-full h-full" viewBox="0 0 360 360">
+          <circle cx="180" cy="180" r="45" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground" />
+          <circle cx="180" cy="180" r="105" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground" />
+          <circle cx="180" cy="180" r="170" fill="none" stroke="currentColor" strokeWidth="2" className="text-foreground" />
           {[-45, 45, 135, -135].map((a) => (
-            <line key={a} {...getLineCoords(a, 35, 130)} stroke="currentColor" strokeWidth="2" className="text-foreground" />
+            <line key={a} {...getLineCoords(a, 45, 170)} stroke="currentColor" strokeWidth="2" className="text-foreground" />
           ))}
         </svg>
 
