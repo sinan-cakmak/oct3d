@@ -85,7 +85,7 @@ export default function MeshLayer({
         );
         shader.fragmentShader = shader.fragmentShader.replace(
           "#include <dithering_fragment>",
-          `int sliceIdx = int(floor(vWorldPos.z / uZSpacing));\nif (sliceIdx >= 0 && sliceIdx < uTotalSlices && uHiddenSlices[sliceIdx] > 0.5) discard;\n#include <dithering_fragment>`
+          `int sliceIdx = int(floor(vWorldPos.z / uZSpacing + 0.5));\nif (sliceIdx >= 0 && sliceIdx < uTotalSlices && uHiddenSlices[sliceIdx] > 0.5) discard;\n#include <dithering_fragment>`
         );
       };
     }
