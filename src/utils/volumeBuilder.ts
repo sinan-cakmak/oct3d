@@ -2,9 +2,17 @@
  * Load mask pixels from a Blob via Canvas.
  * Returns the R channel as a Uint8Array (for grayscale PNGs, R=G=B=label value).
  */
+/**
+ * Load mask pixels from a Blob via Canvas, optionally downsampled.
+ * Returns the R channel + dimensions + scale factor for adjusting spacings.
+ *
+ * @param maxDim  Downsample so neither dimension exceeds this (0 = no downsample).
+ *                Uses nearest-neighbor to preserve integer label values.
+ */
 export async function loadMaskPixels(
-  blob: Blob
-): Promise<{ data: Uint8Array; width: number; height: number }> {
+  blob: Blob,
+  maxDim: number = 0
+): Promise<{ data: Uint8Array; width: number; height: number; scaleFactor: number }> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(blob);
     const img = new Image();
@@ -13,21 +21,32 @@ export async function loadMaskPixels(
       const ctx = canvas.getContext("2d");
       if (!ctx) { URL.revokeObjectURL(url); reject(new Error("No canvas context")); return; }
 
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
+      let w = img.width;
+      let h = img.height;
+      let scaleFactor = 1;
 
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      if (maxDim > 0 && (w > maxDim || h > maxDim)) {
+        const scale = maxDim / Math.max(w, h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+        scaleFactor = img.width / w; // e.g., 512/256 = 2
+      }
+
+      canvas.width = w;
+      canvas.height = h;
+      ctx.imageSmoothingEnabled = false; // nearest-neighbor for labels
+      ctx.drawImage(img, 0, 0, w, h);
+
+      const imageData = ctx.getImageData(0, 0, w, h);
       const pixels = imageData.data;
 
-      // Extract R channel only
-      const data = new Uint8Array(img.width * img.height);
+      const data = new Uint8Array(w * h);
       for (let i = 0; i < data.length; i++) {
-        data[i] = pixels[i * 4]; // R channel
+        data[i] = pixels[i * 4];
       }
 
       URL.revokeObjectURL(url);
-      resolve({ data, width: img.width, height: img.height });
+      resolve({ data, width: w, height: h, scaleFactor });
     };
     img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Failed to load image")); };
     img.src = url;

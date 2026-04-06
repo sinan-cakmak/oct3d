@@ -57,8 +57,7 @@ export default function Viewer3DPage() {
   const [resetTrigger, setResetTrigger] = useState(0);
   const [etdrsVolumes, setEtdrsVolumes] = useState<Record<string, ETDRSVolumes>>({});
   const [clipRange, setClipRange] = useState<[number, number]>([0, 1]);
-
-  const scalings = DEFAULT_SCALINGS;
+  const [scalings] = useState<[number, number, number]>(DEFAULT_SCALINGS);
 
   // Total X extent in world units (depth axis = THREE.x)
   const maxX = dims[0] * scalings[2];
@@ -97,12 +96,14 @@ export default function Viewer3DPage() {
         }
         if (cancelled) return;
 
+        const adjScalings = DEFAULT_SCALINGS;
+
         // Step 2: Stack volume
         setStatusText("Building 3D volume...");
         setProgress(45);
         const { volume, dims: volDims, labels } = stackVolume(pixelSlices);
         setDims(volDims);
-        setClipRange([0, volDims[0] * scalings[2]]);
+        setClipRange([0, volDims[0] * adjScalings[2]]);
 
         // Build slice info
         const sliceInfo: SliceInfo[] = sortedMasks.map((img, i) => ({
@@ -126,13 +127,15 @@ export default function Viewer3DPage() {
         for (const lid of labels) {
           labelNames[lid] = patient.labelConfig[lid]?.name || getDefaultLabelName(lid);
         }
-        // ETDRS origin: center of physical X (width) and physical Z (depth)
+        // ETDRS origin: middle pixel and middle scan
+        // For 512px: pixel 256 → index 255.5 → 255.5 * 11.54 = 2948 µm
+        // For 25 scans: scan 13 (1-indexed) → index 12 → 12 * 246 = 2952 µm
         const etdrsOrigin: [number, number] = [
-          (volDims[2] * scalings[0]) / 2, // center of image width
-          (volDims[0] * scalings[2]) / 2, // center of depth
+          ((volDims[2] - 1) / 2) * adjScalings[0], // middle pixel
+          ((volDims[0] - 1) / 2) * adjScalings[2], // middle scan
         ];
         const vols = calculateAllETDRSVolumes(
-          volume, volDims, labels, labelNames, scalings, etdrsOrigin, currentEye
+          volume, volDims, labels, labelNames, adjScalings, etdrsOrigin, currentEye
         );
         setEtdrsVolumes(vols);
 
@@ -172,9 +175,9 @@ export default function Viewer3DPage() {
 
           // Spacing: [dim0=Z, dim1=Y, dim2=X]
           const spacing: [number, number, number] = [
-            scalings[2] / (interpSteps + 1),
-            scalings[1],
-            scalings[0],
+            adjScalings[2] / (interpSteps + 1),
+            adjScalings[1],
+            adjScalings[0],
           ];
 
           const result = await new Promise<MeshData | null>((resolve) => {
@@ -263,11 +266,11 @@ export default function Viewer3DPage() {
     );
   }
 
-  // Compute ETDRS origin (center of volume)
+  // ETDRS 3D grid origin: middle scan, y=0, middle pixel
   const origin: [number, number, number] = [
-    (dims[0] * scalings[2]) / 2,
+    ((dims[0] - 1) / 2) * scalings[2], // middle scan → THREE.x
     0,
-    (dims[2] * scalings[0]) / 2,
+    ((dims[2] - 1) / 2) * scalings[0], // middle pixel → THREE.z
   ];
 
   return (
