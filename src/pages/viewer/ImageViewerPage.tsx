@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { X, ZoomIn, ZoomOut, Maximize, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 import { useZoomPan } from "./hooks/useZoomPan";
 import { useImageNavigation } from "./hooks/useImageNavigation";
 import { useMaskOverlay } from "./hooks/useMaskOverlay";
+
+const THICKNESS_KEY = "oct3d-edge-thickness";
 
 export default function ImageViewerPage() {
   const { id: patientId, eye, imageIndex: indexStr } = useParams();
@@ -13,6 +16,10 @@ export default function ImageViewerPage() {
   const currentEye = (eye as "OD" | "OS") || "OD";
 
   const [showOverlay, setShowOverlay] = useState(true);
+  const [thickness, setThickness] = useState(() => {
+    const saved = localStorage.getItem(THICKNESS_KEY);
+    return saved ? Math.max(1, Math.min(5, parseInt(saved, 10))) : 1;
+  });
 
   const {
     sortedImages,
@@ -41,7 +48,8 @@ export default function ImageViewerPage() {
   const { overlayUrl, hasMask, labelConfig } = useMaskOverlay(
     patientId!,
     currentImage?.filename,
-    currentEye
+    currentEye,
+    thickness
   );
 
   // Visible labels (non-zero, have config)
@@ -184,9 +192,29 @@ export default function ImageViewerPage() {
         </Button>
       </div>
 
-      {/* Legend — bottom right (above thumbnail strip), only when overlay is on */}
+      {/* Legend — bottom right (above thumbnail strip) */}
       {hasMask && showOverlay && visibleLabels.length > 0 && (
-        <div className="absolute bottom-20 right-4 z-50 bg-black/60 backdrop-blur-sm rounded-lg p-2 space-y-1">
+        <div className="absolute bottom-20 right-4 z-50 bg-black/60 backdrop-blur-sm rounded-lg p-3 space-y-2 min-w-[150px]">
+          {/* Thickness slider */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center">
+              <span className="text-white/60 text-[10px] uppercase tracking-wide">Edge width</span>
+              <span className="text-white/80 text-[10px] font-mono">{thickness}px</span>
+            </div>
+            <Slider
+              value={[thickness]}
+              onValueChange={(v) => {
+                setThickness(v[0]);
+                localStorage.setItem(THICKNESS_KEY, String(v[0]));
+              }}
+              min={1}
+              max={5}
+              step={1}
+              className="[&_[role=slider]]:bg-white [&_[role=slider]]:border-0"
+            />
+          </div>
+          <div className="h-px bg-white/15" />
+          {/* Label swatches */}
           {visibleLabels.map((label) => (
             <div key={label.id} className="flex items-center gap-2">
               <div

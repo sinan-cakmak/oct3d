@@ -9,7 +9,8 @@ const stripExt = (f: string) => f.replace(/\.[^.]+$/, "");
 export function useMaskOverlay(
   patientId: string,
   currentOctFilename: string | undefined,
-  eye: "OD" | "OS"
+  eye: "OD" | "OS",
+  thickness = 1
 ) {
   const patient = useLiveQuery(
     () => db.patients.get(patientId),
@@ -48,7 +49,7 @@ export function useMaskOverlay(
     let cancelled = false;
     setComputing(true);
 
-    computeMaskEdges(matchingMask.blob, labelConfig).then((url) => {
+    computeMaskEdges(matchingMask.blob, labelConfig, thickness).then((url) => {
       if (!cancelled) {
         setOverlayUrl(url);
         setComputing(false);
@@ -59,7 +60,7 @@ export function useMaskOverlay(
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matchingMask?.id, JSON.stringify(labelConfig)]);
+  }, [matchingMask?.id, JSON.stringify(labelConfig), thickness]);
 
   return {
     overlayUrl,
