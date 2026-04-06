@@ -4,7 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
 import { naturalSort } from "@/utils/naturalSort";
-import { loadMaskPixels, stackVolume, extractBinaryVolume, interpolateZAxis, gaussianBlur3D } from "@/utils/volumeBuilder";
+import { loadMaskPixels, stackVolume } from "@/utils/volumeBuilder";
 import { getDefaultLabelColor, getDefaultLabelName } from "@/utils/colorPalette";
 import { calculateAllETDRSVolumes, type ETDRSVolumes } from "@/utils/etdrsCalculation";
 import { Button } from "@/components/ui/button";
@@ -161,25 +161,11 @@ export default function Viewer3DPage() {
 
           setStatusText(`Generating mesh: ${name}...`);
 
-          const binaryVolume = extractBinaryVolume(volume, volDims, labelId);
-
-          // Interpolate along Z axis for smoother depth transitions.
           const interpSteps = 6;
-          const { volume: interpVolume, dims: interpDims } =
-            interpolateZAxis(binaryVolume, volDims, interpSteps);
+          const blurSigma = 3.0;
+          const smoothingIters = 15;
 
-          // 3D Gaussian blur eliminates pixel-level staircase edges.
-          // sigma=3.0 aggressively smooths the hard 0/1 boundaries into
-          // gradients that marching cubes can interpolate smoothly.
-          const smoothVolume = gaussianBlur3D(interpVolume, interpDims, 3.0);
-
-          // Spacing: [dim0=Z, dim1=Y, dim2=X]
-          const spacing: [number, number, number] = [
-            adjScalings[2] / (interpSteps + 1),
-            adjScalings[1],
-            adjScalings[0],
-          ];
-
+          // ALL heavy work runs in the worker (off main thread)
           const result = await new Promise<MeshData | null>((resolve) => {
             worker.onmessage = (e) => {
               if (e.data.type === "meshResult") {
@@ -202,17 +188,16 @@ export default function Viewer3DPage() {
               }
             };
 
-            worker.postMessage(
-              {
-                type: "generateMesh",
-                volume: smoothVolume,
-                dims: interpDims,
-                spacing,
-                labelId,
-                smoothingIterations: 15,
-              },
-              [smoothVolume.buffer]
-            );
+            worker.postMessage({
+              type: "generateMesh",
+              volume,
+              dims: volDims,
+              spacing: adjScalings,
+              labelId,
+              interpSteps,
+              smoothingIterations: smoothingIters,
+              blurSigma,
+            });
           });
 
           if (result) results.push(result);
