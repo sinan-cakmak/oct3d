@@ -349,6 +349,7 @@ export default function Viewer3DPage() {
         clipRange={clipRange}
         setClipRange={setClipRange}
         maxExtent={maxZ}
+        patientName={patient?.name ?? "patient"}
       />
     </div>
   );

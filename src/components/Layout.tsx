@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import { Eye } from "lucide-react";
+import { Eye, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ThemeToggle from "./ThemeToggle";
 
 export default function Layout() {
@@ -12,7 +13,15 @@ export default function Layout() {
             <Eye className="h-6 w-6 text-foreground" />
             <h1 className="text-xl font-bold text-foreground">3D OCT Viewer</h1>
           </Link>
-          <ThemeToggle />
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" asChild>
+              <Link to="/guide">
+                <BookOpen className="h-4 w-4" />
+                Guide
+              </Link>
+            </Button>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <main>

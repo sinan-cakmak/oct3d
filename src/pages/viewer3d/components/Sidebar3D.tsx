@@ -1,7 +1,8 @@
+import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { Eye, EyeOff, X, Grid3X3 } from "lucide-react";
+import { Eye, EyeOff, X, Grid3X3, Download } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import { motion } from "framer-motion";
 import ETDRSCircularGrid from "./ETDRSCircularGrid";
@@ -41,6 +42,7 @@ export default function Sidebar3D({
   clipRange,
   setClipRange,
   maxExtent,
+  patientName,
 }: {
   meshes: MeshInfo[];
   visibilityMap: Record<string, boolean>;
@@ -62,7 +64,45 @@ export default function Sidebar3D({
   clipRange: [number, number];
   setClipRange: (v: [number, number]) => void;
   maxExtent: number;
+  patientName: string;
 }) {
+  const exportCSV = useCallback(() => {
+    const ETDRS_KEYS = ["c1", "s3", "i3", "n3", "t3", "s6", "i6", "n6", "t6"] as const;
+
+    // Header row
+    const headers = [
+      "Patient",
+      "Eye",
+      "Label",
+      "Avg Thickness (um)",
+      "Total Volume (nL)",
+      ...ETDRS_KEYS.map((k) => `ETDRS ${k} (nL)`),
+    ];
+
+    const rows: string[][] = [];
+    for (const mesh of meshes) {
+      const vol = volumes[mesh.name];
+      const thick = thicknesses[mesh.name];
+      rows.push([
+        patientName,
+        eye,
+        mesh.name,
+        thick != null ? thick.toFixed(2) : "",
+        vol ? vol.total.toFixed(4) : "",
+        ...ETDRS_KEYS.map((k) => (vol ? vol[k].toFixed(4) : "")),
+      ]);
+    }
+
+    const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${patientName.replace(/\s+/g, "_")}_${eye}_measurements.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [meshes, volumes, thicknesses, eye, patientName]);
+
   if (!showSidebar) return null;
 
   return (
@@ -349,6 +389,18 @@ export default function Sidebar3D({
               />
             </CardContent>
           </Card>
+        )}
+
+        {/* Export */}
+        {Object.keys(volumes).length > 0 && (
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={exportCSV}
+          >
+            <Download className="h-4 w-4" />
+            Export Measurements (CSV)
+          </Button>
         )}
       </div>
     </motion.div>
