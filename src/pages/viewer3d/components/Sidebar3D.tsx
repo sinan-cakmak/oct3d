@@ -134,6 +134,106 @@ export default function Sidebar3D({
           </div>
         </div>
 
+        {/* Export */}
+        {Object.keys(volumes).length > 0 && (
+          <Button
+            variant="outline"
+            className="w-full gap-2"
+            onClick={exportCSV}
+          >
+            <Download className="h-4 w-4" />
+            Export Measurements (CSV)
+          </Button>
+        )}
+
+        {/* ETDRS Grid */}
+        {Object.keys(volumes).length > 0 && (
+          <Card className="gap-2 py-3">
+            <CardContent>
+              <ETDRSCircularGrid
+                volumes={volumes}
+                meshes={meshes}
+                eye={eye}
+                visibilityMap={visibilityMap}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Average Thicknesses */}
+        {Object.keys(thicknesses).length > 0 && (
+          <Card className="gap-2 py-3">
+            <CardHeader>
+              <CardTitle className="text-sm">Average Thickness</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                {meshes
+                  .filter(
+                    (m) =>
+                      visibilityMap[m.name] !== false &&
+                      thicknesses[m.name] != null,
+                  )
+                  .map((mesh) => (
+                    <div
+                      key={mesh.name}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <div
+                          className="w-2.5 h-2.5 rounded-sm"
+                          style={{ backgroundColor: mesh.color }}
+                        />
+                        <span className="text-xs font-medium">{mesh.name}</span>
+                      </div>
+                      <span className="text-xs font-mono font-medium">
+                        {thicknesses[mesh.name].toFixed(1)} µm
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Volume Measurements */}
+        {Object.keys(volumes).length > 0 && (
+          <Card className="gap-2 py-3">
+            <CardHeader>
+              <CardTitle className="text-sm">Volume Measurements</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                {meshes
+                  .filter(
+                    (m) => visibilityMap[m.name] !== false && volumes[m.name],
+                  )
+                  .map((mesh) => {
+                    const vol = volumes[mesh.name];
+                    return (
+                      <div key={mesh.name} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5">
+                            <div
+                              className="w-2.5 h-2.5 rounded-sm"
+                              style={{ backgroundColor: mesh.color }}
+                            />
+                            <span className="text-xs font-medium">
+                              {mesh.name}
+                            </span>
+                          </div>
+                          <span className="text-xs font-mono font-medium">
+                            {vol.total.toFixed(2)} nL
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Layers */}
         <Card className="gap-2 py-3">
           <CardHeader>
@@ -186,28 +286,6 @@ export default function Sidebar3D({
             ))}
           </CardContent>
         </Card>
-
-        {/* Cross-Section Clip */}
-        {maxExtent > 0 && (
-          <Card className="gap-2 py-3">
-            <CardHeader>
-              <CardTitle className="text-sm">Cross Section</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              <CrossSectionSlider
-                value={clipRange}
-                onChange={setClipRange}
-                min={0}
-                max={maxExtent}
-                step={maxExtent / 200}
-              />
-              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
-                <span>{clipRange[0].toFixed(1)} µm</span>
-                <span>{clipRange[1].toFixed(1)} µm</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Slices */}
         <Card className="gap-2 py-3">
@@ -303,104 +381,26 @@ export default function Sidebar3D({
           )}
         </Card>
 
-        {/* Average Thicknesses */}
-        {Object.keys(thicknesses).length > 0 && (
+        {/* Cross-Section Clip */}
+        {maxExtent > 0 && (
           <Card className="gap-2 py-3">
             <CardHeader>
-              <CardTitle className="text-sm">Average Thickness</CardTitle>
+              <CardTitle className="text-sm">Cross Section</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                {meshes
-                  .filter(
-                    (m) =>
-                      visibilityMap[m.name] !== false &&
-                      thicknesses[m.name] != null,
-                  )
-                  .map((mesh) => (
-                    <div
-                      key={mesh.name}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          className="w-2.5 h-2.5 rounded-sm"
-                          style={{ backgroundColor: mesh.color }}
-                        />
-                        <span className="text-xs font-medium">{mesh.name}</span>
-                      </div>
-                      <span className="text-xs font-mono font-medium">
-                        {thicknesses[mesh.name].toFixed(1)} µm
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Volume Measurements */}
-        {Object.keys(volumes).length > 0 && (
-          <Card className="gap-2 py-3">
-            <CardHeader>
-              <CardTitle className="text-sm">Volume Measurements</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                {meshes
-                  .filter(
-                    (m) => visibilityMap[m.name] !== false && volumes[m.name],
-                  )
-                  .map((mesh) => {
-                    const vol = volumes[mesh.name];
-                    return (
-                      <div key={mesh.name} className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <div
-                              className="w-2.5 h-2.5 rounded-sm"
-                              style={{ backgroundColor: mesh.color }}
-                            />
-                            <span className="text-xs font-medium">
-                              {mesh.name}
-                            </span>
-                          </div>
-                          <span className="text-xs font-mono font-medium">
-                            {vol.total.toFixed(2)} nL
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* ETDRS Grid */}
-        {Object.keys(volumes).length > 0 && (
-          <Card className="gap-2 py-3">
-            <CardContent>
-              <ETDRSCircularGrid
-                volumes={volumes}
-                meshes={meshes}
-                eye={eye}
-                visibilityMap={visibilityMap}
+            <CardContent className="space-y-1">
+              <CrossSectionSlider
+                value={clipRange}
+                onChange={setClipRange}
+                min={0}
+                max={maxExtent}
+                step={maxExtent / 200}
               />
+              <div className="flex justify-between text-[10px] text-muted-foreground font-mono">
+                <span>{clipRange[0].toFixed(1)} µm</span>
+                <span>{clipRange[1].toFixed(1)} µm</span>
+              </div>
             </CardContent>
           </Card>
-        )}
-
-        {/* Export */}
-        {Object.keys(volumes).length > 0 && (
-          <Button
-            variant="outline"
-            className="w-full gap-2"
-            onClick={exportCSV}
-          >
-            <Download className="h-4 w-4" />
-            Export Measurements (CSV)
-          </Button>
         )}
       </div>
     </motion.div>
