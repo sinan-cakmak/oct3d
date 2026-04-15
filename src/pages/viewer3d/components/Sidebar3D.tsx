@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { Eye, EyeOff, X, Grid3X3, Download } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
+import LocaleToggle from "@/components/LocaleToggle";
 import { motion } from "framer-motion";
 import ETDRSCircularGrid from "./ETDRSCircularGrid";
 import CrossSectionSlider from "./CrossSectionSlider";
 import type { ETDRSVolumes } from "@/utils/etdrsCalculation";
+import useTranslation from "@/i18n/useTranslation";
 
 interface MeshInfo {
   labelId: number;
@@ -66,6 +68,8 @@ export default function Sidebar3D({
   maxExtent: number;
   patientName: string;
 }) {
+  const { t } = useTranslation();
+
   const exportCSV = useCallback(() => {
     const ETDRS_KEYS = ["c1", "s3", "i3", "n3", "t3", "s6", "i6", "n6", "t6"] as const;
 
@@ -117,12 +121,13 @@ export default function Sidebar3D({
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold">3D Visualization</h1>
+            <h1 className="text-2xl font-bold">{t("sidebar.title")}</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              OCT Segmentation Layers
+              {t("sidebar.subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-1">
+            <LocaleToggle />
             <ThemeToggle />
             <Button
               variant="ghost"
@@ -142,7 +147,7 @@ export default function Sidebar3D({
             onClick={exportCSV}
           >
             <Download className="h-4 w-4" />
-            Export Measurements (CSV)
+            {t("sidebar.export")}
           </Button>
         )}
 
@@ -164,7 +169,7 @@ export default function Sidebar3D({
         {Object.keys(thicknesses).length > 0 && (
           <Card className="gap-2 py-3">
             <CardHeader>
-              <CardTitle className="text-sm">Average Thickness</CardTitle>
+              <CardTitle className="text-sm">{t("sidebar.avgThickness")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2">
@@ -200,7 +205,7 @@ export default function Sidebar3D({
         {Object.keys(volumes).length > 0 && (
           <Card className="gap-2 py-3">
             <CardHeader>
-              <CardTitle className="text-sm">Volume Measurements</CardTitle>
+              <CardTitle className="text-sm">{t("sidebar.volumeMeasurements")}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2">
@@ -237,7 +242,7 @@ export default function Sidebar3D({
         {/* Layers */}
         <Card className="gap-2 py-3">
           <CardHeader>
-            <CardTitle className="text-sm">Layers ({meshes.length})</CardTitle>
+            <CardTitle className="text-sm">{t("sidebar.layersCount", { count: meshes.length })}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {meshes.map((mesh) => (
@@ -265,7 +270,7 @@ export default function Sidebar3D({
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Opacity</span>
+                    <span>{t("sidebar.opacity")}</span>
                     <span>
                       {Math.round((opacityMap[mesh.name] ?? 1.0) * 100)}%
                     </span>
@@ -280,7 +285,7 @@ export default function Sidebar3D({
                   />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {mesh.vertexCount.toLocaleString()} vertices
+                  {t("sidebar.vertices", { count: mesh.vertexCount.toLocaleString() })}
                 </div>
               </div>
             ))}
@@ -292,7 +297,7 @@ export default function Sidebar3D({
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm">
-                Slices ({slices.filter((s) => s.valid).length}/{slices.length})
+                {t("sidebar.slicesCount", { valid: slices.filter((s) => s.valid).length, total: slices.length })}
               </CardTitle>
               <Button
                 size="sm"
@@ -301,7 +306,7 @@ export default function Sidebar3D({
                 className="h-7 gap-1.5 text-xs"
               >
                 <Grid3X3 className="h-3.5 w-3.5" />
-                {showSliceGrid ? "Hide" : "Show"}
+                {showSliceGrid ? t("sidebar.hide") : t("sidebar.show")}
               </Button>
             </div>
           </CardHeader>
@@ -318,7 +323,7 @@ export default function Sidebar3D({
                     setSliceVisibility(m);
                   }}
                 >
-                  Show All
+                  {t("sidebar.showAll")}
                 </Button>
                 <Button
                   size="sm"
@@ -330,7 +335,7 @@ export default function Sidebar3D({
                     setSliceVisibility(m);
                   }}
                 >
-                  Hide All
+                  {t("sidebar.hideAll")}
                 </Button>
                 <Button
                   size="sm"
@@ -342,7 +347,7 @@ export default function Sidebar3D({
                     setSliceVisibility(m);
                   }}
                 >
-                  Valid Only
+                  {t("sidebar.validOnly")}
                 </Button>
               </div>
               <div className="max-h-64 overflow-y-auto space-y-0.5">
@@ -385,7 +390,7 @@ export default function Sidebar3D({
         {maxExtent > 0 && (
           <Card className="gap-2 py-3">
             <CardHeader>
-              <CardTitle className="text-sm">Cross Section</CardTitle>
+              <CardTitle className="text-sm">{t("sidebar.crossSection")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-1">
               <CrossSectionSlider

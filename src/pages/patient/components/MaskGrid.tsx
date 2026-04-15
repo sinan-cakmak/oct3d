@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { removeImage } from "@/db";
 import type { PatientImage } from "@/db/types";
 import { toast } from "sonner";
+import useTranslation from "@/i18n/useTranslation";
 
 interface MaskGridProps {
   images: PatientImage[];
@@ -101,13 +102,15 @@ function MaskThumbnail({
 }
 
 export default function MaskGrid({ images, patientId: _patientId }: MaskGridProps) {
+  const { t } = useTranslation();
+
   const handleDelete = async (e: React.MouseEvent, image: PatientImage) => {
     e.stopPropagation();
     try {
       await removeImage(image.id);
-      toast.success(`Removed ${image.filename}`);
+      toast.success(t("toast.removed", { filename: image.filename }));
     } catch (err) {
-      toast.error("Failed to remove mask");
+      toast.error(t("toast.removeMaskFailed"));
       console.error(err);
     }
   };
@@ -115,7 +118,7 @@ export default function MaskGrid({ images, patientId: _patientId }: MaskGridProp
   if (images.length === 0) {
     return (
       <p className="text-sm text-muted-foreground py-8 text-center">
-        No masks uploaded yet
+        {t("maskGrid.empty")}
       </p>
     );
   }

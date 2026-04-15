@@ -7,6 +7,7 @@
  */
 
 import type { ETDRSVolumes } from "@/utils/etdrsCalculation";
+import useTranslation from "@/i18n/useTranslation";
 
 interface MeshInfo {
   name: string;
@@ -24,11 +25,12 @@ export default function ETDRSCircularGrid({
   eye: string;
   visibilityMap: Record<string, boolean>;
 }) {
+  const { t } = useTranslation();
   // The label is always N/T — what changes per eye is which SIDE they appear on.
   // OD: N on right, T on left.  OS: N on left, T on right.
   // The n6/t6 positions already swap via the eye check below, so labels are fixed.
-  const nasalLabel = "N";
-  const temporalLabel = "T";
+  const nasalLabel = t("etdrs.nasal");
+  const temporalLabel = t("etdrs.temporal");
 
   const getRegionVolumes = (region: string) =>
     meshes
@@ -64,7 +66,7 @@ export default function ETDRSCircularGrid({
 
   return (
     <div className="w-full flex flex-col items-center">
-      <h3 className="text-sm font-semibold mb-4">ETDRS Volumes (nL)</h3>
+      <h3 className="text-sm font-semibold mb-4">{t("etdrs.title")}</h3>
 
       <div className="relative w-[360px] h-[360px]">
         {/* SVG Grid */}

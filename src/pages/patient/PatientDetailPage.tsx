@@ -12,8 +12,10 @@ import MaskUploadZone from "./components/MaskUploadZone";
 import ImageGrid from "./components/ImageGrid";
 import MaskGrid from "./components/MaskGrid";
 import LabelConfigPanel from "./components/LabelConfigPanel";
+import useTranslation from "@/i18n/useTranslation";
 
 export default function PatientDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"oct" | "mask">("oct");
@@ -44,7 +46,7 @@ export default function PatientDetailPage() {
   if (patient === undefined || octImages === undefined || maskImages === undefined) {
     return (
       <div className="p-8">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{t("patient.loading")}</p>
       </div>
     );
   }
@@ -53,10 +55,10 @@ export default function PatientDetailPage() {
   if (patient === null) {
     return (
       <div className="p-8">
-        <p className="text-muted-foreground">Patient not found.</p>
+        <p className="text-muted-foreground">{t("patient.notFound")}</p>
         <Button variant="ghost" className="mt-4" onClick={() => navigate("/")}>
           <ArrowLeft className="size-4" />
-          Back to patients
+          {t("patient.backToPatients")}
         </Button>
       </div>
     );
@@ -94,7 +96,7 @@ export default function PatientDetailPage() {
           variant="ghost"
           size="icon"
           onClick={() => navigate("/")}
-          title="Back to patients"
+          title={t("patient.backToPatients")}
         >
           <ArrowLeft className="size-5" />
         </Button>
@@ -127,7 +129,7 @@ export default function PatientDetailPage() {
           size="sm"
           className="font-mono text-xs"
           onClick={handleEyeToggle}
-          title="Click to toggle eye"
+          title={t("patient.toggleEye")}
         >
           {patient.eye}
         </Button>
@@ -139,10 +141,10 @@ export default function PatientDetailPage() {
           size="sm"
           onClick={() => navigate(`/patient/${id}/3d/${selectedEye}`)}
           disabled={!hasMasks}
-          title={hasMasks ? "View in 3D" : "Upload masks to enable 3D view"}
+          title={hasMasks ? t("patient.viewIn3D") : t("patient.uploadMasksFirst")}
         >
           <Box className="size-4" />
-          View in 3D
+          {t("patient.viewIn3D")}
         </Button>
       </div>
 
@@ -158,7 +160,7 @@ export default function PatientDetailPage() {
               onClick={() => setActiveTab("oct")}
             >
               <Image className="size-4" />
-              OCT Images
+              {t("patient.octImages")}
               {sortedOctImages.length > 0 && (
                 <span className="ml-1 text-xs opacity-70">
                   ({sortedOctImages.length})
@@ -171,7 +173,7 @@ export default function PatientDetailPage() {
               onClick={() => setActiveTab("mask")}
             >
               <Layers className="size-4" />
-              Masks
+              {t("patient.masks")}
               {sortedMaskImages.length > 0 && (
                 <span className="ml-1 text-xs opacity-70">
                   ({sortedMaskImages.length})

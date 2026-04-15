@@ -9,6 +9,7 @@ import {
 } from "@/utils/colorPalette";
 import type { Patient } from "@/db/types";
 import { toast } from "sonner";
+import useTranslation from "@/i18n/useTranslation";
 
 interface MaskUploadZoneProps {
   patientId: string;
@@ -23,6 +24,7 @@ export default function MaskUploadZone({
   eye = "OD",
   hasImages = false,
 }: MaskUploadZoneProps) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
 
   const onDrop = useCallback(
@@ -52,12 +54,12 @@ export default function MaskUploadZone({
           await updateLabelConfig(patientId, existingConfig);
         }
 
-        toast.success(`Uploaded ${acceptedFiles.length} masks`);
+        toast.success(t("toast.uploadedMasks", { count: acceptedFiles.length }));
         if (newLabelsAdded > 0) {
-          toast.info(`Detected ${newLabelsAdded} new label(s)`);
+          toast.info(t("toast.detectedLabels", { count: newLabelsAdded }));
         }
       } catch (err) {
-        toast.error("Failed to upload masks");
+        toast.error(t("toast.uploadMasksFailed"));
         console.error(err);
       } finally {
         setUploading(false);
@@ -90,13 +92,13 @@ export default function MaskUploadZone({
       {uploading ? (
         <div className="flex items-center justify-center gap-2">
           <Loader2 className="size-4 text-muted-foreground animate-spin" />
-          <p className="text-sm text-muted-foreground">Uploading & analyzing masks...</p>
+          <p className="text-sm text-muted-foreground">{t("upload.uploadingMasks")}</p>
         </div>
       ) : hasImages ? (
         <div className="flex items-center justify-center gap-2">
           <Upload className="size-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            {isDragActive ? "Drop mask files here..." : "Add more mask images"}
+            {isDragActive ? t("upload.dropMasks") : t("upload.addMoreMasks")}
           </p>
         </div>
       ) : (
@@ -104,11 +106,11 @@ export default function MaskUploadZone({
           <Upload className="size-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
             {isDragActive
-              ? "Drop mask files here..."
-              : "Drag & drop mask images, or click to browse"}
+              ? t("upload.dropMasks")
+              : t("upload.dragDropMasks")}
           </p>
           <p className="text-xs text-muted-foreground/60">
-            PNG, JPG files accepted
+            {t("upload.fileTypes")}
           </p>
         </div>
       )}

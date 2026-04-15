@@ -52,6 +52,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import useTranslation from "@/i18n/useTranslation";
 
 // ---------------------------------------------------------------------------
 // Image count hook – returns a map of patientId → count
@@ -95,13 +96,13 @@ const cardVariants = {
 
 export default function HomePage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // ---- Data ----
   const patients = useLiveQuery(
     () => db.patients.orderBy("createdAt").reverse().toArray(),
     [],
   );
-  // Sort by updatedAt descending after fetching (createdAt index used for broad ordering)
   const sortedPatients = patients
     ? [...patients].sort((a, b) => b.updatedAt - a.updatedAt)
     : undefined;
@@ -120,18 +121,18 @@ export default function HomePage() {
     setCreating(true);
     try {
       const id = await createPatient(trimmed, newEye);
-      toast.success("Patient created");
+      toast.success(t("toast.patientCreated"));
       setNewOpen(false);
       setNewName("");
       setNewEye("OD");
       navigate(`/patient/${id}`);
     } catch (err) {
-      toast.error("Failed to create patient");
+      toast.error(t("toast.patientCreateFailed"));
       console.error(err);
     } finally {
       setCreating(false);
     }
-  }, [newName, newEye, navigate]);
+  }, [newName, newEye, navigate, t]);
 
   // ---- Rename dialog state ----
   const [renameOpen, setRenameOpen] = useState(false);
@@ -152,16 +153,16 @@ export default function HomePage() {
     setRenaming(true);
     try {
       await renamePatient(renameTarget.id, trimmed);
-      toast.success("Patient renamed");
+      toast.success(t("toast.patientRenamed"));
       setRenameOpen(false);
       setRenameTarget(null);
     } catch (err) {
-      toast.error("Failed to rename patient");
+      toast.error(t("toast.patientRenameFailed"));
       console.error(err);
     } finally {
       setRenaming(false);
     }
-  }, [renameTarget, renameName]);
+  }, [renameTarget, renameName, t]);
 
   // ---- Delete alert dialog state ----
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -178,22 +179,22 @@ export default function HomePage() {
     setDeleting(true);
     try {
       await deletePatient(deleteTarget.id);
-      toast.success("Patient deleted");
+      toast.success(t("toast.patientDeleted"));
       setDeleteOpen(false);
       setDeleteTarget(null);
     } catch (err) {
-      toast.error("Failed to delete patient");
+      toast.error(t("toast.patientDeleteFailed"));
       console.error(err);
     } finally {
       setDeleting(false);
     }
-  }, [deleteTarget]);
+  }, [deleteTarget, t]);
 
   // ---- Loading state ----
   if (sortedPatients === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{t("home.loading")}</p>
       </div>
     );
   }
@@ -204,14 +205,14 @@ export default function HomePage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-foreground">Patients</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("home.title")}</h1>
           <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
             {sortedPatients.length}
           </span>
         </div>
         <Button onClick={() => setNewOpen(true)}>
           <Plus className="size-4" />
-          New Patient
+          {t("home.newPatient")}
         </Button>
       </div>
 
@@ -222,14 +223,14 @@ export default function HomePage() {
             <User className="size-8 text-muted-foreground" />
           </div>
           <h2 className="text-lg font-semibold text-foreground">
-            No patients yet
+            {t("home.empty.title")}
           </h2>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Create your first patient to start uploading and viewing OCT scans.
+            {t("home.empty.description")}
           </p>
           <Button className="mt-6" onClick={() => setNewOpen(true)}>
             <Plus className="size-4" />
-            New Patient
+            {t("home.newPatient")}
           </Button>
         </div>
       )}
@@ -264,7 +265,7 @@ export default function HomePage() {
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreVertical className="size-4" />
-                          <span className="sr-only">Actions</span>
+                          <span className="sr-only">{t("home.actions")}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
@@ -278,7 +279,7 @@ export default function HomePage() {
                           }}
                         >
                           <Pencil className="size-4" />
-                          Rename
+                          {t("home.rename")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -289,7 +290,7 @@ export default function HomePage() {
                           }}
                         >
                           <Trash2 className="size-4" />
-                          Delete
+                          {t("home.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -301,14 +302,14 @@ export default function HomePage() {
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <ImageIcon className="size-3.5" />
-                      {imageCounts?.[patient.id] ?? 0} images
+                      {imageCounts?.[patient.id] ?? 0} {t("home.images")}
                     </span>
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Calendar className="size-3.5" />
-                    Created {formatDate(patient.createdAt)}
+                    {t("home.created")} {formatDate(patient.createdAt)}
                   </p>
                 </CardContent>
               </Card>
@@ -321,9 +322,9 @@ export default function HomePage() {
       <Dialog open={newOpen} onOpenChange={setNewOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New Patient</DialogTitle>
+            <DialogTitle>{t("home.dialog.new.title")}</DialogTitle>
             <DialogDescription>
-              Enter a name and select the eye for this patient.
+              {t("home.dialog.new.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -332,11 +333,11 @@ export default function HomePage() {
                 htmlFor="new-patient-name"
                 className="text-sm font-medium text-foreground"
               >
-                Name
+                {t("home.dialog.new.nameLabel")}
               </label>
               <Input
                 id="new-patient-name"
-                placeholder="e.g. John Doe"
+                placeholder={t("home.dialog.new.namePlaceholder")}
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 onKeyDown={(e) => {
@@ -346,7 +347,7 @@ export default function HomePage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Eye</label>
+              <label className="text-sm font-medium text-foreground">{t("home.dialog.new.eyeLabel")}</label>
               <div className="flex gap-2">
                 {(["OD", "OS"] as const).map((eye) => (
                   <Button
@@ -366,13 +367,13 @@ export default function HomePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setNewOpen(false)}>
-              Cancel
+              {t("home.dialog.new.cancel")}
             </Button>
             <Button
               onClick={handleCreate}
               disabled={!newName.trim() || creating}
             >
-              {creating ? "Creating..." : "Create"}
+              {creating ? t("home.dialog.new.creating") : t("home.dialog.new.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -382,14 +383,14 @@ export default function HomePage() {
       <Dialog open={renameOpen} onOpenChange={setRenameOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename Patient</DialogTitle>
+            <DialogTitle>{t("home.dialog.rename.title")}</DialogTitle>
             <DialogDescription>
-              Enter a new name for this patient.
+              {t("home.dialog.rename.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">
             <Input
-              placeholder="Patient name"
+              placeholder={t("home.dialog.rename.placeholder")}
               value={renameName}
               onChange={(e) => setRenameName(e.target.value)}
               onKeyDown={(e) => {
@@ -400,13 +401,13 @@ export default function HomePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenameOpen(false)}>
-              Cancel
+              {t("home.dialog.rename.cancel")}
             </Button>
             <Button
               onClick={handleRename}
               disabled={!renameName.trim() || renaming}
             >
-              {renaming ? "Saving..." : "Save"}
+              {renaming ? t("home.dialog.rename.saving") : t("home.dialog.rename.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -416,24 +417,23 @@ export default function HomePage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Patient</AlertDialogTitle>
+            <AlertDialogTitle>{t("home.dialog.delete.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete{" "}
+              {t("home.dialog.delete.description")}{" "}
               <span className="font-medium text-foreground">
                 {deleteTarget?.name}
               </span>
-              ? This will permanently remove the patient and all associated
-              images. This action cannot be undone.
+              {t("home.dialog.delete.warning")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>{t("home.dialog.delete.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleting}
               className="bg-destructive text-white hover:bg-destructive/90"
             >
-              {deleting ? "Deleting..." : "Delete"}
+              {deleting ? t("home.dialog.delete.deleting") : t("home.dialog.delete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

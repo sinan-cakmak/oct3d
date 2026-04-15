@@ -1,104 +1,92 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import useTranslation from "@/i18n/useTranslation";
+import type { TranslationKey } from "@/i18n/translations";
 
-const sections = [
+interface Section {
+  titleKey: TranslationKey;
+  contentKey?: TranslationKey;
+  steps?: { labelKey: TranslationKey; textKey: TranslationKey }[];
+  featureKeys?: TranslationKey[];
+  table?: { headers: [TranslationKey, TranslationKey]; rows: [string, TranslationKey][] };
+}
+
+const sections: Section[] = [
   {
-    title: "1. Overview",
-    content: `3D OCT Viewer is a web-based analysis tool for visualizing and quantifying OCT (Optical Coherence Tomography) segmentation masks in interactive 3D. It computes ETDRS-based volume measurements and average layer thicknesses in real physical scale, and renders 3D meshes of retinal layers and fluid accumulations. All processing runs entirely in your browser — no server or data upload is required.`,
+    titleKey: "guide.s1.title",
+    contentKey: "guide.s1.content",
   },
   {
-    title: "2. Getting Started",
+    titleKey: "guide.s2.title",
     steps: [
-      {
-        label: "Create a Patient",
-        text: 'Click "New Patient" on the home page. Enter a name and select the eye laterality (OD or OS).',
-      },
-      {
-        label: "Upload OCT Images",
-        text: 'Open the patient page, switch to the "OCT Images" tab, and drag-and-drop your OCT images (PNG or JPG). File names should follow a natural order (e.g., p1.png through p25.png).',
-      },
-      {
-        label: "Upload Segmentation Masks",
-        text: 'Switch to the "Masks" tab and upload the corresponding segmentation mask PNGs. Each pixel\'s R-channel value represents a label ID (0 = background, 1\u2013N = tissue classes). Filenames must match the OCT images for correct pairing.',
-      },
-      {
-        label: "Configure Labels",
-        text: "After uploading masks, detected labels appear in the sidebar. Rename them (e.g., Layer 1 \u2192 NSR, Layer 3 \u2192 SRF) and assign colors by clicking the color swatch.",
-      },
+      { labelKey: "guide.s2.step1.label", textKey: "guide.s2.step1.text" },
+      { labelKey: "guide.s2.step2.label", textKey: "guide.s2.step2.text" },
+      { labelKey: "guide.s2.step3.label", textKey: "guide.s2.step3.text" },
+      { labelKey: "guide.s2.step4.label", textKey: "guide.s2.step4.text" },
     ],
   },
   {
-    title: "3. Image Viewer",
-    content: `Click any OCT image thumbnail to open the full-screen viewer. When both images and masks are uploaded for the same eye, colored edges of each segmentation label are automatically overlaid on the OCT images.`,
-    features: [
-      "Zoom in/out with scroll wheel or the on-screen controls, pan by clicking and dragging",
-      "Navigate between images with arrow keys or the bottom controls",
-      "Toggle edge overlay with the Layers button (bottom-left)",
-      "Adjust edge thickness with the slider in the legend panel (bottom-right)",
+    titleKey: "guide.s3.title",
+    contentKey: "guide.s3.content",
+    featureKeys: ["guide.s3.f1", "guide.s3.f2", "guide.s3.f3", "guide.s3.f4"],
+  },
+  {
+    titleKey: "guide.s4.title",
+    contentKey: "guide.s4.content",
+    featureKeys: [
+      "guide.s4.f1", "guide.s4.f2", "guide.s4.f3",
+      "guide.s4.f4", "guide.s4.f5", "guide.s4.f6",
     ],
   },
   {
-    title: "4. 3D Visualization",
-    content: `Click "View in 3D" on the patient page to generate interactive 3D meshes from the segmentation masks. The pipeline uses marching cubes with Z-axis interpolation, anisotropic Gaussian blur, and Taubin smoothing to produce smooth, volume-preserving surfaces.`,
-    features: [
-      "Rotate: left-click and drag",
-      "Pan: right-click and drag",
-      "Zoom: scroll wheel",
-      "Per-layer visibility toggles and opacity sliders",
-      "Cross-section slider to clip the volume along the depth axis",
-      "Slices panel: toggle the slice grid to see where each uploaded image corresponds to in the 3D render, show or hide individual slices to inspect specific cross-sections within the volume",
+    titleKey: "guide.s5.title",
+    contentKey: "guide.s5.content",
+    featureKeys: [
+      "guide.s5.f1", "guide.s5.f2", "guide.s5.f3",
+      "guide.s5.f4", "guide.s5.f5", "guide.s5.f6",
     ],
   },
   {
-    title: "5. Measurements",
-    content: `All measurements are computed in real physical scale using the default OCT spacings (X: 11.54 \u00b5m, Y: 3.87 \u00b5m, Z: 246.0 \u00b5m).`,
-    features: [
-      "Average thickness (\u00b5m): mean layer thickness across all D\u00d7W columns",
-      "Total volume (nL): overall volume per label",
-      "ETDRS volumes (nL): per-region volumes displayed on a 9-sector circular grid",
-      "ETDRS regions: center (1 mm), inner ring (3 mm), outer ring (6 mm)",
-      "Nasal/Temporal orientation adapts to the selected eye (OD vs OS)",
-      "Export all measurements to CSV via the sidebar export button",
-    ],
+    titleKey: "guide.s6.title",
+    contentKey: "guide.s6.content",
+    table: {
+      headers: ["guide.s6.th1", "guide.s6.th2"],
+      rows: [
+        ["0", "guide.s6.r1"],
+        ["1", "guide.s6.r2"],
+        ["2", "guide.s6.r3"],
+        ["3", "guide.s6.r4"],
+        ["4", "guide.s6.r5"],
+        ["5+", "guide.s6.r6"],
+      ],
+    },
   },
   {
-    title: "6. Input Format",
-    content: `Masks must be grayscale PNGs where each pixel value encodes a class label (R channel). A typical set-up:`,
-    table: [
-      ["Pixel value", "Meaning"],
-      ["0", "Background"],
-      ["1", "NSR (Neurosensory Retina)"],
-      ["2", "RPE (Retinal Pigment Epithelium)"],
-      ["3", "SRF (Sub-Retinal Fluid)"],
-      ["4", "PED (Pigment Epithelial Detachment)"],
-      ["5+", "Additional custom labels"],
-    ],
-  },
-  {
-    title: "7. Data Privacy",
-    content: `All data (images, masks, measurements) is stored locally in your browser's IndexedDB. Nothing is uploaded to any server. Clearing your browser data will remove all stored patients and images.`,
+    titleKey: "guide.s7.title",
+    contentKey: "guide.s7.content",
   },
 ];
 
 export default function GuidePage() {
+  const { t } = useTranslation();
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Usage Guide</h1>
+        <h1 className="text-3xl font-bold">{t("guide.title")}</h1>
         <p className="text-muted-foreground mt-2">
-          Learn how to use the 3D OCT Viewer for segmentation visualization and
-          quantitative analysis.
+          {t("guide.description")}
         </p>
       </div>
 
       {sections.map((section) => (
-        <Card key={section.title} className="gap-2 py-4">
+        <Card key={section.titleKey} className="gap-2 py-4">
           <CardHeader>
-            <CardTitle className="text-lg">{section.title}</CardTitle>
+            <CardTitle className="text-lg">{t(section.titleKey)}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {section.content && (
+            {section.contentKey && (
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {section.content}
+                {t(section.contentKey)}
               </p>
             )}
 
@@ -110,9 +98,9 @@ export default function GuidePage() {
                       {i + 1}
                     </span>
                     <div>
-                      <p className="text-sm font-medium">{step.label}</p>
+                      <p className="text-sm font-medium">{t(step.labelKey)}</p>
                       <p className="text-sm text-muted-foreground">
-                        {step.text}
+                        {t(step.textKey)}
                       </p>
                     </div>
                   </li>
@@ -120,9 +108,9 @@ export default function GuidePage() {
               </ol>
             )}
 
-            {section.features && (
+            {section.featureKeys && (
               <ul className="space-y-1.5">
-                {section.features.map((f, i) => (
+                {section.featureKeys.map((fk, i) => (
                   <li
                     key={i}
                     className="text-sm text-muted-foreground flex gap-2"
@@ -130,7 +118,7 @@ export default function GuidePage() {
                     <span className="text-muted-foreground/50 shrink-0">
                       &bull;
                     </span>
-                    {f}
+                    {t(fk)}
                   </li>
                 ))}
               </ul>
@@ -141,24 +129,22 @@ export default function GuidePage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/50">
-                      {section.table[0].map((h, i) => (
+                      {section.table.headers.map((h, i) => (
                         <th key={i} className="px-3 py-2 text-left font-medium">
-                          {h}
+                          {t(h)}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {section.table.slice(1).map((row, ri) => (
+                    {section.table.rows.map((row, ri) => (
                       <tr key={ri} className="border-t">
-                        {row.map((cell, ci) => (
-                          <td
-                            key={ci}
-                            className="px-3 py-1.5 text-muted-foreground"
-                          >
-                            {cell}
-                          </td>
-                        ))}
+                        <td className="px-3 py-1.5 text-muted-foreground">
+                          {row[0]}
+                        </td>
+                        <td className="px-3 py-1.5 text-muted-foreground">
+                          {t(row[1])}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

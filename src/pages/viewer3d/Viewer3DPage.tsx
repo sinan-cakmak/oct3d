@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Loader2 } from "lucide-react";
 import Scene from "./components/Scene";
 import Sidebar3D from "./components/Sidebar3D";
+import useTranslation from "@/i18n/useTranslation";
 
 interface MeshData {
   labelId: number;
@@ -35,6 +36,7 @@ export default function Viewer3DPage() {
   const { id: patientId, eye: eyeParam } = useParams();
   const navigate = useNavigate();
   const currentEye = (eyeParam as "OD" | "OS") || "OD";
+  const { t } = useTranslation();
 
   const patient = useLiveQuery(() => db.patients.get(patientId!), [patientId]);
   const maskImages = useLiveQuery(
@@ -47,7 +49,7 @@ export default function Viewer3DPage() {
   const [dims, setDims] = useState<[number, number, number]>([0, 0, 0]);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [statusText, setStatusText] = useState("Loading...");
+  const [statusText, setStatusText] = useState(t("viewer3d.loading"));
 
   const [visibilityMap, setVisibilityMap] = useState<Record<string, boolean>>({});
   const [opacityMap, setOpacityMap] = useState<Record<string, number>>({});
@@ -78,7 +80,7 @@ export default function Viewer3DPage() {
     const sortedMasks = naturalSort(maskImages, (img) => img.filename);
     if (sortedMasks.length === 0) {
       setLoading(false);
-      setStatusText("No masks found");
+      setStatusText(t("viewer3d.noMasks"));
       return;
     }
 
@@ -87,7 +89,7 @@ export default function Viewer3DPage() {
     (async () => {
       try {
         // Step 1: Load mask pixels
-        setStatusText("Loading masks...");
+        setStatusText(t("viewer3d.loadingMasks"));
         setProgress(10);
         const pixelSlices = [];
         for (let i = 0; i < sortedMasks.length; i++) {
@@ -100,7 +102,7 @@ export default function Viewer3DPage() {
         const adjScalings = DEFAULT_SCALINGS;
 
         // Step 2: Stack volume
-        setStatusText("Building 3D volume...");
+        setStatusText(t("viewer3d.buildingVolume"));
         setProgress(45);
         const { volume, dims: volDims, labels } = stackVolume(pixelSlices);
         setDims(volDims);
@@ -110,30 +112,27 @@ export default function Viewer3DPage() {
         const sliceInfo: SliceInfo[] = sortedMasks.map((img, i) => ({
           index: i,
           filename: img.filename,
-          valid: true, // all uploaded masks are valid
+          valid: true,
         }));
         setSlices(sliceInfo);
 
         if (labels.length === 0) {
           setLoading(false);
-          setStatusText("No labels found in masks");
+          setStatusText(t("viewer3d.noLabels"));
           return;
         }
 
         // Step 2.5: Calculate ETDRS volumes
-        setStatusText("Calculating ETDRS volumes...");
+        setStatusText(t("viewer3d.calculatingETDRS"));
         setProgress(48);
 
         const labelNames: Record<number, string> = {};
         for (const lid of labels) {
           labelNames[lid] = patient.labelConfig[lid]?.name || getDefaultLabelName(lid);
         }
-        // ETDRS origin: middle pixel and middle scan
-        // For 512px: pixel 256 → index 255.5 → 255.5 * 11.54 = 2948 µm
-        // For 25 scans: scan 13 (1-indexed) → index 12 → 12 * 246 = 2952 µm
         const etdrsOrigin: [number, number] = [
-          ((volDims[2] - 1) / 2) * adjScalings[0], // middle pixel
-          ((volDims[0] - 1) / 2) * adjScalings[2], // middle scan
+          ((volDims[2] - 1) / 2) * adjScalings[0],
+          ((volDims[0] - 1) / 2) * adjScalings[2],
         ];
         const vols = calculateAllETDRSVolumes(
           volume, volDims, labels, labelNames, adjScalings, etdrsOrigin, currentEye
@@ -147,7 +146,7 @@ export default function Viewer3DPage() {
         setThicknesses(thick);
 
         // Step 3: Generate meshes via Web Worker
-        setStatusText("Generating 3D meshes...");
+        setStatusText(t("viewer3d.generatingMeshes"));
         setProgress(50);
 
         const worker = new Worker(
@@ -166,13 +165,12 @@ export default function Viewer3DPage() {
           const colorArr = labelConfig?.color || getDefaultLabelColor(labelId);
           const color = `rgb(${colorArr[0]},${colorArr[1]},${colorArr[2]})`;
 
-          setStatusText(`Generating mesh: ${name}...`);
+          setStatusText(t("viewer3d.generatingMesh", { name }));
 
           const interpSteps = 6;
           const blurSigma = 3.0;
           const smoothingIters = 15;
 
-          // ALL heavy work runs in the worker (off main thread)
           const result = await new Promise<MeshData | null>((resolve) => {
             worker.onmessage = (e) => {
               if (e.data.type === "meshResult") {
@@ -233,7 +231,7 @@ export default function Viewer3DPage() {
     })();
 
     return () => { cancelled = true; };
-  }, [patient, maskImages, scalings]);
+  }, [patient, maskImages, scalings, t]);
 
   if (loading) {
     return (
@@ -251,18 +249,18 @@ export default function Viewer3DPage() {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">{statusText || "No meshes generated"}</p>
-          <Button className="mt-4" onClick={() => navigate(`/patient/${patientId}`)}>Back</Button>
+          <p className="text-muted-foreground">{statusText || t("viewer3d.noMeshes")}</p>
+          <Button className="mt-4" onClick={() => navigate(`/patient/${patientId}`)}>{t("viewer3d.back")}</Button>
         </div>
       </div>
     );
   }
 
-  // ETDRS 3D grid origin (matching MC output: x=width, y=height, z=depth)
+  // ETDRS 3D grid origin
   const origin: [number, number, number] = [
-    ((dims[2] - 1) / 2) * scalings[0], // middle pixel → THREE.x
+    ((dims[2] - 1) / 2) * scalings[0],
     0,
-    ((dims[0] - 1) / 2) * scalings[2], // middle scan → THREE.z
+    ((dims[0] - 1) / 2) * scalings[2],
   ];
 
   return (
@@ -293,17 +291,17 @@ export default function Viewer3DPage() {
         <div className="absolute top-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg p-4 border border-border">
           <h2 className="text-lg font-semibold mb-2">{patient?.name}</h2>
           <div className="text-sm text-muted-foreground space-y-1">
-            <p>Dimensions: {dims[2]}x{dims[1]}x{dims[0]}</p>
-            <p>Eye: {currentEye}</p>
-            <p>Meshes: {meshes.length}</p>
+            <p>{t("viewer3d.dimensions")}: {dims[2]}x{dims[1]}x{dims[0]}</p>
+            <p>{t("viewer3d.eye")}: {currentEye}</p>
+            <p>{t("viewer3d.meshCount")}: {meshes.length}</p>
           </div>
         </div>
 
         {/* Controls help */}
         <div className="absolute bottom-4 left-4 bg-background/90 backdrop-blur-sm rounded-lg p-3 border border-border text-xs text-muted-foreground">
-          <p><strong>Left Click:</strong> Rotate</p>
-          <p><strong>Right Click:</strong> Pan</p>
-          <p><strong>Scroll:</strong> Zoom</p>
+          <p><strong>{t("viewer3d.leftClick")}</strong> {t("viewer3d.controlsRotate")}</p>
+          <p><strong>{t("viewer3d.rightClick")}</strong> {t("viewer3d.controlsPan")}</p>
+          <p><strong>{t("viewer3d.scroll")}</strong> {t("viewer3d.controlsZoom")}</p>
         </div>
 
         {/* Close button */}
@@ -313,7 +311,7 @@ export default function Viewer3DPage() {
           className="absolute top-4 right-4 bg-background/90"
           onClick={() => navigate(`/patient/${patientId}`)}
         >
-          Close
+          {t("viewer3d.close")}
         </Button>
       </div>
 
@@ -325,7 +323,7 @@ export default function Viewer3DPage() {
           className="absolute top-1/2 right-4 -translate-y-1/2 bg-background/90"
           onClick={() => setShowSidebar(true)}
         >
-          Layers
+          {t("viewer3d.layers")}
         </Button>
       )}
 

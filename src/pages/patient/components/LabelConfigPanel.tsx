@@ -3,12 +3,14 @@ import { Input } from "@/components/ui/input";
 import { updateLabelConfig } from "@/db";
 import { DEFAULT_LABEL_COLORS } from "@/utils/colorPalette";
 import type { Patient } from "@/db/types";
+import useTranslation from "@/i18n/useTranslation";
 
 interface LabelConfigPanelProps {
   patient: Patient;
 }
 
 export default function LabelConfigPanel({ patient }: LabelConfigPanelProps) {
+  const { t } = useTranslation();
   const [localConfig, setLocalConfig] = useState(patient.labelConfig);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -77,7 +79,7 @@ export default function LabelConfigPanel({ patient }: LabelConfigPanelProps) {
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold">Label Configuration</h3>
+      <h3 className="text-sm font-semibold">{t("labelConfig.title")}</h3>
       <div className="space-y-2">
         {sortedLabelIds.map((labelId) => {
           const label = localConfig[labelId];
@@ -92,7 +94,7 @@ export default function LabelConfigPanel({ patient }: LabelConfigPanelProps) {
                 onClick={() => handleColorCycle(labelId)}
                 className="size-6 rounded shrink-0 border border-border cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
                 style={{ backgroundColor: `rgb(${r}, ${g}, ${b})` }}
-                title="Click to cycle color"
+                title={t("labelConfig.cycleColor")}
               />
               <Input
                 className="h-7 text-xs"

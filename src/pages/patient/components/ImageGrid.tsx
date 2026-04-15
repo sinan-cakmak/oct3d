@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { removeImage } from "@/db";
 import type { PatientImage } from "@/db/types";
 import { toast } from "sonner";
+import useTranslation from "@/i18n/useTranslation";
 
 interface ImageGridProps {
   images: PatientImage[];
@@ -66,13 +67,15 @@ export default function ImageGrid({
   patientId: _patientId,
   onImageClick,
 }: ImageGridProps) {
+  const { t } = useTranslation();
+
   const handleDelete = async (e: React.MouseEvent, image: PatientImage) => {
     e.stopPropagation();
     try {
       await removeImage(image.id);
-      toast.success(`Removed ${image.filename}`);
+      toast.success(t("toast.removed", { filename: image.filename }));
     } catch (err) {
-      toast.error("Failed to remove image");
+      toast.error(t("toast.removeFailed"));
       console.error(err);
     }
   };

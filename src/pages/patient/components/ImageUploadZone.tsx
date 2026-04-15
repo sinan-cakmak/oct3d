@@ -3,6 +3,7 @@ import { useDropzone } from "react-dropzone";
 import { Upload, Loader2 } from "lucide-react";
 import { addImages } from "@/db";
 import { toast } from "sonner";
+import useTranslation from "@/i18n/useTranslation";
 
 interface ImageUploadZoneProps {
   patientId: string;
@@ -19,6 +20,7 @@ export default function ImageUploadZone({
   hasImages = false,
   onUploadComplete,
 }: ImageUploadZoneProps) {
+  const { t } = useTranslation();
   const [uploading, setUploading] = useState(false);
 
   const onDrop = useCallback(
@@ -27,10 +29,10 @@ export default function ImageUploadZone({
       setUploading(true);
       try {
         await addImages(patientId, acceptedFiles, type, eye);
-        toast.success(`Uploaded ${acceptedFiles.length} images`);
+        toast.success(t("toast.uploadedImages", { count: acceptedFiles.length }));
         onUploadComplete?.();
       } catch (err) {
-        toast.error("Failed to upload images");
+        toast.error(t("toast.uploadImagesFailed"));
         console.error(err);
       } finally {
         setUploading(false);
@@ -63,13 +65,13 @@ export default function ImageUploadZone({
       {uploading ? (
         <div className="flex items-center justify-center gap-2">
           <Loader2 className="size-4 text-muted-foreground animate-spin" />
-          <p className="text-sm text-muted-foreground">Uploading...</p>
+          <p className="text-sm text-muted-foreground">{t("upload.uploading")}</p>
         </div>
       ) : hasImages ? (
         <div className="flex items-center justify-center gap-2">
           <Upload className="size-4 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            {isDragActive ? "Drop files here..." : `Add more ${type === "oct" ? "OCT" : "mask"} images`}
+            {isDragActive ? t("upload.dropFiles") : type === "oct" ? t("upload.addMoreOct") : t("upload.addMoreMasks")}
           </p>
         </div>
       ) : (
@@ -77,11 +79,11 @@ export default function ImageUploadZone({
           <Upload className="size-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
             {isDragActive
-              ? "Drop files here..."
-              : `Drag & drop ${type === "oct" ? "OCT" : "mask"} images, or click to browse`}
+              ? t("upload.dropFiles")
+              : type === "oct" ? t("upload.dragDropOct") : t("upload.dragDropMasks")}
           </p>
           <p className="text-xs text-muted-foreground/60">
-            PNG, JPG files accepted
+            {t("upload.fileTypes")}
           </p>
         </div>
       )}

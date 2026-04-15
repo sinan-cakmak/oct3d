@@ -6,6 +6,7 @@ import { X, ZoomIn, ZoomOut, Maximize, ChevronLeft, ChevronRight, Layers } from 
 import { useZoomPan } from "./hooks/useZoomPan";
 import { useImageNavigation } from "./hooks/useImageNavigation";
 import { useMaskOverlay } from "./hooks/useMaskOverlay";
+import useTranslation from "@/i18n/useTranslation";
 
 const THICKNESS_KEY = "oct3d-edge-thickness";
 
@@ -14,6 +15,7 @@ export default function ImageViewerPage() {
   const navigate = useNavigate();
   const currentIndex = parseInt(indexStr || "0", 10);
   const currentEye = (eye as "OD" | "OS") || "OD";
+  const { t } = useTranslation();
 
   const [showOverlay, setShowOverlay] = useState(true);
   const [thickness, setThickness] = useState(() => {
@@ -98,7 +100,7 @@ export default function ImageViewerPage() {
   if (!currentImage || !imageUrl) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center text-white">
-        Loading...
+        {t("viewer.loading")}
       </div>
     );
   }
@@ -175,7 +177,7 @@ export default function ImageViewerPage() {
               size="icon"
               className={`h-8 w-8 hover:bg-white/10 ${showOverlay ? "text-white" : "text-white/30"}`}
               onClick={() => setShowOverlay((v) => !v)}
-              title={showOverlay ? "Hide edges" : "Show edges"}
+              title={showOverlay ? t("viewer.hideEdges") : t("viewer.showEdges")}
             >
               <Layers className="h-4 w-4" />
             </Button>
@@ -200,7 +202,7 @@ export default function ImageViewerPage() {
           {/* Thickness slider */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <span className="text-white/60 text-[10px] uppercase tracking-wide">Edge width</span>
+              <span className="text-white/60 text-[10px] uppercase tracking-wide">{t("viewer.edgeWidth")}</span>
               <span className="text-white/80 text-[10px] font-mono">{thickness}px</span>
             </div>
             <Slider
