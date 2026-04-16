@@ -231,7 +231,8 @@ export default function Viewer3DPage() {
     })();
 
     return () => { cancelled = true; };
-  }, [patient, maskImages, scalings, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- t creates a new ref each render; including it restarts the entire pipeline
+  }, [patient, maskImages, scalings]);
 
   if (loading) {
     return (
