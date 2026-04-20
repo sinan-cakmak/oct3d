@@ -14,7 +14,9 @@ export default function Layout() {
       <header className="w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="flex justify-between items-center px-4 sm:px-6 lg:px-8 py-4">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/kuis-ai-logo.png" alt="KUIS AI" className="h-8 w-auto" />
+            <span className="inline-flex rounded-md p-1 dark:bg-white">
+              <img src="/kuis-ai-logo.png" alt="KUIS AI" className="h-8 w-auto" />
+            </span>
             <div className="h-5 w-px bg-border/60 hidden sm:block" />
             <h1 className="text-xl font-bold text-foreground">{t("layout.title")}</h1>
           </Link>
