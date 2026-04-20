@@ -69,6 +69,21 @@ function useImageCounts(patientIds: string[] | undefined) {
   }, [patientIds?.join(",")]);
 }
 
+function usePatientEyes(patientIds: string[] | undefined) {
+  return useLiveQuery(async () => {
+    if (!patientIds || patientIds.length === 0) return {} as Record<string, ("OD" | "OS")[]>;
+    const result: Record<string, ("OD" | "OS")[]> = {};
+    for (const pid of patientIds) {
+      const eyes = new Set<"OD" | "OS">();
+      await db.images.where("patientId").equals(pid).each((img) => {
+        if (img.eye === "OD" || img.eye === "OS") eyes.add(img.eye);
+      });
+      result[pid] = ["OD", "OS"].filter((e) => eyes.has(e as "OD" | "OS")) as ("OD" | "OS")[];
+    }
+    return result;
+  }, [patientIds?.join(",")]);
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -108,6 +123,7 @@ export default function HomePage() {
     : undefined;
 
   const imageCounts = useImageCounts(sortedPatients?.map((p) => p.id));
+  const patientEyes = usePatientEyes(sortedPatients?.map((p) => p.id));
 
   // ---- New patient dialog state ----
   const [newOpen, setNewOpen] = useState(false);
@@ -298,7 +314,9 @@ export default function HomePage() {
                   <CardDescription className="flex items-center gap-4 text-xs">
                     <span className="inline-flex items-center gap-1">
                       <Eye className="size-3.5" />
-                      {patient.eye}
+                      {patientEyes?.[patient.id]?.length
+                        ? patientEyes[patient.id].join(", ")
+                        : patient.eye}
                     </span>
                     <span className="inline-flex items-center gap-1">
                       <ImageIcon className="size-3.5" />
