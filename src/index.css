@@ -113,6 +113,20 @@
 }
 
 /* ---- Base styles ---- */
+/*
+ * Tailwind v4 defaults `border-color` to `currentColor`, which makes bare
+ * `border` / `border-b` / `divide-*` utilities render in the foreground color
+ * (near-white in dark mode). Pin them to the theme token so borders stay
+ * subtle and consistent across modes.
+ */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: hsl(var(--border));
+  }
+}
+
 html, body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
