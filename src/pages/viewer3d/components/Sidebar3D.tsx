@@ -72,6 +72,8 @@ export default function Sidebar3D({
 }) {
   const { t } = useTranslation();
   const [volumeUnit, setVolumeUnit] = useState<"nL" | "mm3">("nL");
+  const [sumVolume, setSumVolume] = useState(false);
+  const [sumThickness, setSumThickness] = useState(false);
 
   // 1 nL = 0.001 mm³
   const formatVolume = (nL: number) => {
@@ -174,20 +176,30 @@ export default function Sidebar3D({
                 eye={eye}
                 visibilityMap={visibilityMap}
                 formatValue={formatVolume}
+                sumMode={sumVolume}
                 headerAction={
-                  <div className="inline-flex rounded-md border border-border overflow-hidden text-[11px]">
+                  <div className="flex items-center gap-1">
                     <button
-                      className={`px-2 py-0.5 ${volumeUnit === "nL" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
-                      onClick={() => setVolumeUnit("nL")}
+                      className={`px-2 py-0.5 rounded-md border border-border text-[11px] ${sumVolume ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
+                      onClick={() => setSumVolume((v) => !v)}
+                      title="Toggle sum across visible layers"
                     >
-                      nL
+                      Σ
                     </button>
-                    <button
-                      className={`px-2 py-0.5 ${volumeUnit === "mm3" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
-                      onClick={() => setVolumeUnit("mm3")}
-                    >
-                      mm³
-                    </button>
+                    <div className="inline-flex rounded-md border border-border overflow-hidden text-[11px]">
+                      <button
+                        className={`px-2 py-0.5 ${volumeUnit === "nL" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
+                        onClick={() => setVolumeUnit("nL")}
+                      >
+                        nL
+                      </button>
+                      <button
+                        className={`px-2 py-0.5 ${volumeUnit === "mm3" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
+                        onClick={() => setVolumeUnit("mm3")}
+                      >
+                        mm³
+                      </button>
+                    </div>
                   </div>
                 }
               />
@@ -206,6 +218,16 @@ export default function Sidebar3D({
                 eye={eye}
                 visibilityMap={visibilityMap}
                 formatValue={formatThickness}
+                sumMode={sumThickness}
+                headerAction={
+                  <button
+                    className={`px-2 py-0.5 rounded-md border border-border text-[11px] ${sumThickness ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
+                    onClick={() => setSumThickness((v) => !v)}
+                    title="Toggle sum across visible layers"
+                  >
+                    Σ
+                  </button>
+                }
               />
             </CardContent>
           </Card>

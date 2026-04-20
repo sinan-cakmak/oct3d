@@ -23,29 +23,41 @@ export default function ETDRSCircularGrid({
   visibilityMap,
   formatValue,
   headerAction,
+  sumMode = false,
 }: {
   title: string;
-  values: Record<string, Partial<Record<RegionKey, number>>>;
+  values: Record<string, Record<string, number>>;
   meshes: MeshInfo[];
   eye: string;
   visibilityMap: Record<string, boolean>;
   formatValue: (v: number) => string;
   headerAction?: React.ReactNode;
+  sumMode?: boolean;
 }) {
   const { t } = useTranslation();
   const nasalLabel = t("etdrs.nasal");
   const temporalLabel = t("etdrs.temporal");
 
+  const visibleMeshes = meshes.filter((m) => visibilityMap[m.name] !== false);
+
   const getRegionValues = (region: RegionKey) =>
-    meshes
-      .filter((m) => visibilityMap[m.name] !== false)
-      .map((m) => ({
-        name: m.name,
-        value: formatValue(values[m.name]?.[region] ?? 0),
-        color: m.color,
-      }));
+    visibleMeshes.map((m) => ({
+      name: m.name,
+      value: formatValue(values[m.name]?.[region] ?? 0),
+      color: m.color,
+    }));
+
+  const getRegionSum = (region: RegionKey) =>
+    visibleMeshes.reduce((acc, m) => acc + (values[m.name]?.[region] ?? 0), 0);
 
   const ValueText = ({ region }: { region: RegionKey }) => {
+    if (sumMode) {
+      return (
+        <div className="text-[11px] font-semibold leading-tight text-foreground">
+          {formatValue(getRegionSum(region))}
+        </div>
+      );
+    }
     const data = getRegionValues(region);
     return (
       <div className="flex flex-col items-center gap-0.5">
