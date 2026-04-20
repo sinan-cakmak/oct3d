@@ -149,6 +149,87 @@ export function calculateAllETDRSVolumes(
 }
 
 /**
+ * Per-ETDRS-sector average thickness for a single label's binary volume.
+ *
+ * For each column (z, x) inside the 6 mm grid, thickness contribution is the
+ * number of label-voxels along Y. Divided by the number of columns in each
+ * region and multiplied by ySpacing to give µm.
+ *
+ * Returns same shape as ETDRSVolumes: 9 regions + total (grid-wide mean).
+ */
+export function calculateETDRSThicknessForLabel(
+  volume: Uint8Array,
+  dims: [number, number, number],
+  scalings: [number, number, number],
+  origin: [number, number],
+  eye: string
+): ETDRSVolumes {
+  const [depth, height, width] = dims;
+  const [xSpacing, ySpacing, zSpacing] = scalings;
+
+  const countSums = new Float64Array(9); // sum of voxel counts per region
+  const colCounts = new Uint32Array(9);  // number of columns per region
+
+  for (let z = 0; z < depth; z++) {
+    const realZ = z * zSpacing;
+    const dz = -(realZ - origin[1]);
+    const zOffset = z * height * width;
+
+    for (let x = 0; x < width; x++) {
+      const realX = x * xSpacing;
+      const dx = realX - origin[0];
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      if (dist > 3000) continue;
+
+      const angle = (Math.atan2(dz, dx) * 180) / Math.PI;
+      const regionIdx = getETDRSRegion(dist, angle, eye);
+      if (regionIdx < 0) continue;
+
+      let colCount = 0;
+      for (let y = 0; y < height; y++) {
+        if (volume[zOffset + y * width + x] > 0) colCount++;
+      }
+      countSums[regionIdx] += colCount;
+      colCounts[regionIdx] += 1;
+    }
+  }
+
+  const result: ETDRSVolumes = { total: 0 };
+  let totalCounts = 0;
+  let totalCols = 0;
+  for (let i = 0; i < 9; i++) {
+    const thick_um = colCounts[i] > 0 ? (countSums[i] / colCounts[i]) * ySpacing : 0;
+    result[ETDRS_REGIONS[i]] = thick_um;
+    totalCounts += countSums[i];
+    totalCols += colCounts[i];
+  }
+  result.total = totalCols > 0 ? (totalCounts / totalCols) * ySpacing : 0;
+  return result;
+}
+
+/**
+ * Calculate per-sector ETDRS thicknesses for all labels in a multi-class volume.
+ */
+export function calculateAllETDRSThicknesses(
+  volume: Uint8Array,
+  dims: [number, number, number],
+  labels: number[],
+  labelNames: Record<number, string>,
+  scalings: [number, number, number],
+  origin: [number, number],
+  eye: string
+): Record<string, ETDRSVolumes> {
+  const result: Record<string, ETDRSVolumes> = {};
+  for (const label of labels) {
+    const binary = new Uint8Array(volume.length);
+    for (let i = 0; i < volume.length; i++) binary[i] = volume[i] === label ? 1 : 0;
+    const name = labelNames[label] || `Layer ${label}`;
+    result[name] = calculateETDRSThicknessForLabel(binary, dims, scalings, origin, eye);
+  }
+  return result;
+}
+
+/**
  * Calculate average thickness for all labels in a multi-class volume.
  *
  * For each label the thickness at a column (z, x) is the number of

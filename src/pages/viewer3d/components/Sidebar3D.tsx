@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -39,6 +39,7 @@ export default function Sidebar3D({
   sliceVisibility,
   setSliceVisibility,
   volumes,
+  etdrsThicknesses,
   thicknesses,
   eye,
   clipRange,
@@ -61,6 +62,7 @@ export default function Sidebar3D({
     React.SetStateAction<Record<number, boolean>>
   >;
   volumes: Record<string, ETDRSVolumes>;
+  etdrsThicknesses: Record<string, ETDRSVolumes>;
   thicknesses: Record<string, number>;
   eye: string;
   clipRange: [number, number];
@@ -69,24 +71,33 @@ export default function Sidebar3D({
   patientName: string;
 }) {
   const { t } = useTranslation();
+  const [volumeUnit, setVolumeUnit] = useState<"nL" | "mm3">("nL");
+
+  // 1 nL = 0.001 mm³
+  const formatVolume = (nL: number) => {
+    const v = volumeUnit === "mm3" ? nL / 1000 : nL;
+    return v.toFixed(volumeUnit === "mm3" ? 4 : 2);
+  };
+  const formatThickness = (um: number) => um.toFixed(1);
 
   const exportCSV = useCallback(() => {
     const ETDRS_KEYS = ["c1", "s3", "i3", "n3", "t3", "s6", "i6", "n6", "t6"] as const;
 
-    // Header row
     const headers = [
       "Patient",
       "Eye",
       "Label",
       "Avg Thickness (um)",
       "Total Volume (nL)",
-      ...ETDRS_KEYS.map((k) => `ETDRS ${k} (nL)`),
+      ...ETDRS_KEYS.map((k) => `ETDRS ${k} Volume (nL)`),
+      ...ETDRS_KEYS.map((k) => `ETDRS ${k} Thickness (um)`),
     ];
 
     const rows: string[][] = [];
     for (const mesh of meshes) {
       const vol = volumes[mesh.name];
       const thick = thicknesses[mesh.name];
+      const sectThick = etdrsThicknesses[mesh.name];
       rows.push([
         patientName,
         eye,
@@ -94,6 +105,7 @@ export default function Sidebar3D({
         thick != null ? thick.toFixed(2) : "",
         vol ? vol.total.toFixed(4) : "",
         ...ETDRS_KEYS.map((k) => (vol ? vol[k].toFixed(4) : "")),
+        ...ETDRS_KEYS.map((k) => (sectThick ? sectThick[k].toFixed(2) : "")),
       ]);
     }
 
@@ -105,7 +117,7 @@ export default function Sidebar3D({
     a.download = `${patientName.replace(/\s+/g, "_")}_${eye}_measurements.csv`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [meshes, volumes, thicknesses, eye, patientName]);
+  }, [meshes, volumes, thicknesses, etdrsThicknesses, eye, patientName]);
 
   if (!showSidebar) return null;
 
@@ -151,90 +163,50 @@ export default function Sidebar3D({
           </Button>
         )}
 
-        {/* ETDRS Grid */}
+        {/* ETDRS Volume Grid */}
         {Object.keys(volumes).length > 0 && (
           <Card className="gap-2 py-3">
             <CardContent>
               <ETDRSCircularGrid
-                volumes={volumes}
+                title={`${t("etdrs.titleVolume")} (${volumeUnit === "mm3" ? "mm³" : "nL"})`}
+                values={volumes}
                 meshes={meshes}
                 eye={eye}
                 visibilityMap={visibilityMap}
+                formatValue={formatVolume}
+                headerAction={
+                  <div className="inline-flex rounded-md border border-border overflow-hidden text-[11px]">
+                    <button
+                      className={`px-2 py-0.5 ${volumeUnit === "nL" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
+                      onClick={() => setVolumeUnit("nL")}
+                    >
+                      nL
+                    </button>
+                    <button
+                      className={`px-2 py-0.5 ${volumeUnit === "mm3" ? "bg-primary text-primary-foreground" : "bg-transparent text-muted-foreground"}`}
+                      onClick={() => setVolumeUnit("mm3")}
+                    >
+                      mm³
+                    </button>
+                  </div>
+                }
               />
             </CardContent>
           </Card>
         )}
 
-        {/* Average Thicknesses */}
-        {Object.keys(thicknesses).length > 0 && (
+        {/* ETDRS Thickness Grid */}
+        {Object.keys(etdrsThicknesses).length > 0 && (
           <Card className="gap-2 py-3">
-            <CardHeader>
-              <CardTitle className="text-sm">{t("sidebar.avgThickness")}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                {meshes
-                  .filter(
-                    (m) =>
-                      visibilityMap[m.name] !== false &&
-                      thicknesses[m.name] != null,
-                  )
-                  .map((mesh) => (
-                    <div
-                      key={mesh.name}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <div
-                          className="w-2.5 h-2.5 rounded-sm"
-                          style={{ backgroundColor: mesh.color }}
-                        />
-                        <span className="text-xs font-medium">{mesh.name}</span>
-                      </div>
-                      <span className="text-xs font-mono font-medium">
-                        {thicknesses[mesh.name].toFixed(1)} µm
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Volume Measurements */}
-        {Object.keys(volumes).length > 0 && (
-          <Card className="gap-2 py-3">
-            <CardHeader>
-              <CardTitle className="text-sm">{t("sidebar.volumeMeasurements")}</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                {meshes
-                  .filter(
-                    (m) => visibilityMap[m.name] !== false && volumes[m.name],
-                  )
-                  .map((mesh) => {
-                    const vol = volumes[mesh.name];
-                    return (
-                      <div key={mesh.name} className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <div
-                              className="w-2.5 h-2.5 rounded-sm"
-                              style={{ backgroundColor: mesh.color }}
-                            />
-                            <span className="text-xs font-medium">
-                              {mesh.name}
-                            </span>
-                          </div>
-                          <span className="text-xs font-mono font-medium">
-                            {vol.total.toFixed(2)} nL
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
+            <CardContent>
+              <ETDRSCircularGrid
+                title={`${t("etdrs.titleThickness")} (µm)`}
+                values={etdrsThicknesses}
+                meshes={meshes}
+                eye={eye}
+                visibilityMap={visibilityMap}
+                formatValue={formatThickness}
+              />
             </CardContent>
           </Card>
         )}

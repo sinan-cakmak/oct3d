@@ -139,6 +139,8 @@ const translations = {
 
     // ETDRS Grid
     "etdrs.title": "ETDRS Volumes (nL)",
+    "etdrs.titleVolume": "ETDRS Volumes",
+    "etdrs.titleThickness": "ETDRS Thickness",
     "etdrs.nasal": "N",
     "etdrs.temporal": "T",
     "etdrs.superior": "S",
@@ -334,6 +336,8 @@ const translations = {
 
     // ETDRS Grid
     "etdrs.title": "ETDRS Hacimleri (nL)",
+    "etdrs.titleVolume": "ETDRS Hacim",
+    "etdrs.titleThickness": "ETDRS Kalınlık",
     "etdrs.nasal": "N",
     "etdrs.temporal": "T",
     "etdrs.superior": "S",

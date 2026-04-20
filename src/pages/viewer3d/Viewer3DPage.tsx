@@ -6,7 +6,12 @@ import { db } from "@/db";
 import { naturalSort } from "@/utils/naturalSort";
 import { loadMaskPixels, stackVolume } from "@/utils/volumeBuilder";
 import { getDefaultLabelColor, getDefaultLabelName } from "@/utils/colorPalette";
-import { calculateAllETDRSVolumes, calculateAverageThicknesses, type ETDRSVolumes } from "@/utils/etdrsCalculation";
+import {
+  calculateAllETDRSVolumes,
+  calculateAllETDRSThicknesses,
+  calculateAverageThicknesses,
+  type ETDRSVolumes,
+} from "@/utils/etdrsCalculation";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Loader2 } from "lucide-react";
@@ -58,6 +63,7 @@ export default function Viewer3DPage() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [resetTrigger, setResetTrigger] = useState(0);
   const [etdrsVolumes, setEtdrsVolumes] = useState<Record<string, ETDRSVolumes>>({});
+  const [etdrsThicknesses, setEtdrsThicknesses] = useState<Record<string, ETDRSVolumes>>({});
   const [thicknesses, setThicknesses] = useState<Record<string, number>>({});
   const [clipRange, setClipRange] = useState<[number, number]>([0, 1]);
   const [scalings] = useState<[number, number, number]>(DEFAULT_SCALINGS);
@@ -138,6 +144,11 @@ export default function Viewer3DPage() {
           volume, volDims, labels, labelNames, adjScalings, etdrsOrigin, currentEye
         );
         setEtdrsVolumes(vols);
+
+        const etdrsThick = calculateAllETDRSThicknesses(
+          volume, volDims, labels, labelNames, adjScalings, etdrsOrigin, currentEye
+        );
+        setEtdrsThicknesses(etdrsThick);
 
         // Step 2.6: Calculate average thicknesses
         const thick = calculateAverageThicknesses(
@@ -343,6 +354,7 @@ export default function Viewer3DPage() {
         sliceVisibility={sliceVisibility}
         setSliceVisibility={setSliceVisibility}
         volumes={etdrsVolumes}
+        etdrsThicknesses={etdrsThicknesses}
         thicknesses={thicknesses}
         eye={currentEye}
         clipRange={clipRange}
