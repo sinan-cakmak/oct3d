@@ -18,7 +18,7 @@ export default function PatientDetailPage() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"oct" | "mask">("oct");
+  const [activeTab, setActiveTab] = useState<"oct" | "mask">("mask");
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -155,19 +155,6 @@ export default function PatientDetailPage() {
           {/* Tab switcher */}
           <div className="flex gap-1 mb-4">
             <Button
-              variant={activeTab === "oct" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveTab("oct")}
-            >
-              <Image className="size-4" />
-              {t("patient.octImages")}
-              {sortedOctImages.length > 0 && (
-                <span className="ml-1 text-xs opacity-70">
-                  ({sortedOctImages.length})
-                </span>
-              )}
-            </Button>
-            <Button
               variant={activeTab === "mask" ? "default" : "outline"}
               size="sm"
               onClick={() => setActiveTab("mask")}
@@ -177,6 +164,19 @@ export default function PatientDetailPage() {
               {sortedMaskImages.length > 0 && (
                 <span className="ml-1 text-xs opacity-70">
                   ({sortedMaskImages.length})
+                </span>
+              )}
+            </Button>
+            <Button
+              variant={activeTab === "oct" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setActiveTab("oct")}
+            >
+              <Image className="size-4" />
+              {t("patient.octImages")}
+              {sortedOctImages.length > 0 && (
+                <span className="ml-1 text-xs opacity-70">
+                  ({sortedOctImages.length})
                 </span>
               )}
             </Button>
