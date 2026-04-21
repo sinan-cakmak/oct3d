@@ -154,7 +154,7 @@ const translations = {
       "Learn how to use the 3D OCT Viewer for segmentation visualization and quantitative analysis.",
     "guide.s1.title": "1. Overview",
     "guide.s1.content":
-      "3D OCT Viewer is a web-based analysis tool for visualizing and quantifying OCT (Optical Coherence Tomography) segmentation masks in interactive 3D. It computes ETDRS-based volume measurements and average layer thicknesses in real physical scale, and renders 3D meshes of retinal layers and fluid accumulations. All processing runs entirely in your browser — no server or data upload is required.",
+      "3D OCT Viewer is a web-based analysis tool for visualizing and quantifying OCT (Optical Coherence Tomography) segmentation masks in interactive 3D. It computes ETDRS-based volume measurements and average layer thicknesses in real physical scale, and renders 3D meshes of retinal layers and fluid accumulations. All processing runs entirely in your browser, no server or data upload is required.",
     "guide.s2.title": "2. Getting Started",
     "guide.s2.step1.label": "Create a Patient",
     "guide.s2.step1.text":
@@ -225,7 +225,7 @@ const translations = {
     "locale.current": "TR",
 
     // Layout
-    "layout.title": "3B OCT Görüntüleyici",
+    "layout.title": "3D OCT Görüntüleyici",
     "layout.guide": "Kılavuz",
 
     // Home page
@@ -290,9 +290,9 @@ const translations = {
     // Patient detail page
     "patient.backToPatients": "Hastalara dön",
     "patient.toggleEye": "Göz değiştirmek için tıklayın",
-    "patient.viewIn3D": "3B Görüntüle",
+    "patient.viewIn3D": "3D Görüntüle",
     "patient.uploadMasksFirst":
-      "3B görünümü etkinleştirmek için maske yükleyin",
+      "3D görünümü etkinleştirmek için maske yükleyin",
     "patient.octImages": "OCT Görüntüleri",
     "patient.masks": "Maskeler",
     "patient.loading": "Yükleniyor...",
@@ -327,9 +327,9 @@ const translations = {
     // 3D viewer
     "viewer3d.loading": "Yükleniyor...",
     "viewer3d.loadingMasks": "Maskeler yükleniyor...",
-    "viewer3d.buildingVolume": "3B hacim oluşturuluyor...",
+    "viewer3d.buildingVolume": "3D hacim oluşturuluyor...",
     "viewer3d.calculatingETDRS": "ETDRS hacimleri hesaplanıyor...",
-    "viewer3d.generatingMeshes": "3B modeller oluşturuluyor...",
+    "viewer3d.generatingMeshes": "3D modeller oluşturuluyor...",
     "viewer3d.generatingMesh": "{name} modeli oluşturuluyor...",
     "viewer3d.noLabels": "Maskelerde etiket bulunamadı",
     "viewer3d.noMasks": "Maske bulunamadı",
@@ -348,7 +348,7 @@ const translations = {
     "viewer3d.back": "Geri",
 
     // Sidebar 3D
-    "sidebar.title": "3B Görselleştirme",
+    "sidebar.title": "3D Görselleştirme",
     "sidebar.subtitle": "OCT Segmentasyon Katmanları",
     "sidebar.export": "Ölçümleri Dışa Aktar (CSV)",
     "sidebar.avgThickness": "Ortalama Kalınlık",
@@ -376,10 +376,10 @@ const translations = {
     // Guide page
     "guide.title": "Kullanım Kılavuzu",
     "guide.description":
-      "Segmentasyon görselleştirme ve nicel analiz için 3B OCT Görüntüleyici'yi nasıl kullanacağınızı öğrenin.",
+      "Segmentasyon görselleştirme ve nicel analiz için 3D OCT Görüntüleyici'yi nasıl kullanacağınızı öğrenin.",
     "guide.s1.title": "1. Genel Bakış",
     "guide.s1.content":
-      "3B OCT Görüntüleyici, OCT (Optik Koherens Tomografi) segmentasyon maskelerini etkileşimli 3B ortamda görselleştirmek ve nicelleştirmek için web tabanlı bir analiz aracıdır. ETDRS tabanlı hacim ölçümlerini ve ortalama tabaka kalınlıklarını gerçek fiziksel ölçekte hesaplar, retina tabakalarının ve sıvı birikimlerinin 3B modellerini oluşturur. Tüm işlemler tamamen tarayıcınızda çalışır — sunucu veya veri yüklemesi gerekmez.",
+      "3D OCT Görüntüleyici, OCT (Optik Koherens Tomografi) segmentasyon maskelerini interaktif 3D ortamda görselleştirmek ve ölçümlemek için web tabanlı bir analiz aracıdır. ETDRS tabanlı hacim ölçümlerini ve ortalama tabaka kalınlıklarını gerçek fiziksel ölçekte hesaplar, retina tabakalarının ve sıvı birikimlerinin 3D modellerini oluşturur. Tüm işlemler tamamen tarayıcınızda çalışır, sunucu veya veri yüklemesi gerekmez.",
     "guide.s2.title": "2. Başlarken",
     "guide.s2.step1.label": "Hasta Oluşturma",
     "guide.s2.step1.text":
@@ -404,9 +404,9 @@ const translations = {
       "Katmanlar butonu (sol alt) ile kenar bindirmesini açma/kapama",
     "guide.s3.f4":
       "Gösterge panelindeki (sağ alt) kaydırıcı ile kenar kalınlığını ayarlama",
-    "guide.s4.title": "4. 3B Görselleştirme",
+    "guide.s4.title": "4. 3D Görselleştirme",
     "guide.s4.content":
-      'Segmentasyon maskelerinden etkileşimli 3B modeller oluşturmak için hasta sayfasında "3B Görüntüle" butonuna tıklayın. İşlem hattı, pürüzsüz ve hacim koruyan yüzeyler üretmek için Z ekseni interpolasyonu, anizotropik Gauss bulanıklaştırma ve Taubin düzleştirmesi ile yürüyen küpler (marching cubes) algoritmasını kullanır.',
+      'Segmentasyon maskelerinden etkileşimli 3D modeller oluşturmak için hasta sayfasında "3D Görüntüle" butonuna tıklayın. İşlem hattı, pürüzsüz ve hacim koruyan yüzeyler üretmek için Z ekseni interpolasyonu, anizotropik Gauss bulanıklaştırma ve Taubin düzleştirmesi ile yürüyen küpler (marching cubes) algoritmasını kullanır.',
     "guide.s4.f1": "Döndürme: sol tıklayıp sürükleme",
     "guide.s4.f2": "Kaydırma: sağ tıklayıp sürükleme",
     "guide.s4.f3": "Yakınlaştırma: kaydırma tekerleği",
@@ -415,7 +415,7 @@ const translations = {
     "guide.s4.f5":
       "Hacmi derinlik ekseni boyunca kesmek için kesit kaydırıcısı",
     "guide.s4.f6":
-      "Kesitler paneli: her yüklenen görüntünün 3B render'da nereye karşılık geldiğini görmek için kesit ızgarasını açıp kapatma, hacim içindeki belirli kesitleri incelemek için bireysel kesitleri gösterme veya gizleme",
+      "Kesitler paneli: her yüklenen görüntünün 3D render'da nereye karşılık geldiğini görmek için kesit ızgarasını açıp kapatma, hacim içindeki belirli kesitleri incelemek için bireysel kesitleri gösterme veya gizleme",
     "guide.s5.title": "5. Ölçümler",
     "guide.s5.content":
       "Tüm ölçümler varsayılan OCT aralıkları (X: 11,54 µm, Y: 3,87 µm, Z: 246,0 µm) kullanılarak gerçek fiziksel ölçekte hesaplanır.",
