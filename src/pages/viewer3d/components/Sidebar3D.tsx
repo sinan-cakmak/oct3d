@@ -46,6 +46,7 @@ export default function Sidebar3D({
   setClipRange,
   maxExtent,
   patientName,
+  scalings,
 }: {
   meshes: MeshInfo[];
   visibilityMap: Record<string, boolean>;
@@ -69,6 +70,7 @@ export default function Sidebar3D({
   setClipRange: (v: [number, number]) => void;
   maxExtent: number;
   patientName: string;
+  scalings: [number, number, number];
 }) {
   const { t } = useTranslation();
   const [volumeUnit, setVolumeUnit] = useState<"nL" | "mm3">("nL");
@@ -152,6 +154,17 @@ export default function Sidebar3D({
             </Button>
           </div>
         </div>
+
+        {/* Spacings used (one-liner) */}
+        <p
+          className="text-[10px] text-muted-foreground leading-tight -mt-2"
+        >
+          <span className="font-mono tabular-nums">
+            X={scalings[0].toFixed(2)} · Y={scalings[1].toFixed(2)} · Z=
+            {scalings[2].toFixed(2)}
+          </span>{" "}
+          µm
+        </p>
 
         {/* Export */}
         {Object.keys(volumes).length > 0 && (
