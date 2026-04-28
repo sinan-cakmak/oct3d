@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/db";
+import { DEFAULT_X_SPACING, DEFAULT_Y_SPACING, DEFAULT_Z_SPACING } from "@/db/types";
 import { naturalSort } from "@/utils/naturalSort";
 import { loadMaskPixels, stackVolume } from "@/utils/volumeBuilder";
 import { getDefaultLabelColor, getDefaultLabelName } from "@/utils/colorPalette";
@@ -35,8 +36,6 @@ interface SliceInfo {
   valid: boolean;
 }
 
-const DEFAULT_SCALINGS: [number, number, number] = [11.54, 3.87, 246.0]; // X, Y, Z
-
 export default function Viewer3DPage() {
   const { id: patientId, eye: eyeParam } = useParams();
   const navigate = useNavigate();
@@ -66,7 +65,15 @@ export default function Viewer3DPage() {
   const [etdrsThicknesses, setEtdrsThicknesses] = useState<Record<string, ETDRSVolumes>>({});
   const [thicknesses, setThicknesses] = useState<Record<string, number>>({});
   const [clipRange, setClipRange] = useState<[number, number]>([0, 1]);
-  const [scalings] = useState<[number, number, number]>(DEFAULT_SCALINGS);
+
+  const scalings = useMemo<[number, number, number]>(
+    () => [
+      patient?.xSpacing ?? DEFAULT_X_SPACING,
+      patient?.ySpacing ?? DEFAULT_Y_SPACING,
+      patient?.zSpacing ?? DEFAULT_Z_SPACING,
+    ],
+    [patient?.xSpacing, patient?.ySpacing, patient?.zSpacing]
+  );
 
   // Total Z extent in world units (depth axis = THREE.z)
   const maxZ = dims[0] * scalings[2];
@@ -105,7 +112,7 @@ export default function Viewer3DPage() {
         }
         if (cancelled) return;
 
-        const adjScalings = DEFAULT_SCALINGS;
+        const adjScalings = scalings;
 
         // Step 2: Stack volume
         setStatusText(t("viewer3d.buildingVolume"));

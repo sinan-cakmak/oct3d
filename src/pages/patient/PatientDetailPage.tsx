@@ -12,6 +12,7 @@ import MaskUploadZone from "./components/MaskUploadZone";
 import ImageGrid from "./components/ImageGrid";
 import MaskGrid from "./components/MaskGrid";
 import LabelConfigPanel from "./components/LabelConfigPanel";
+import SpacingsPanel from "./components/SpacingsPanel";
 import useTranslation from "@/i18n/useTranslation";
 
 export default function PatientDetailPage() {
@@ -203,15 +204,20 @@ export default function PatientDetailPage() {
         </div>
 
         {/* Sidebar */}
-        {hasMasks && hasLabels && (
-          <div className="w-full lg:w-80 shrink-0">
+        <div className="w-full lg:w-80 shrink-0 space-y-4">
+          <Card>
+            <CardContent>
+              <SpacingsPanel patient={patient} />
+            </CardContent>
+          </Card>
+          {hasMasks && hasLabels && (
             <Card>
               <CardContent>
                 <LabelConfigPanel patient={patient} />
               </CardContent>
             </Card>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -94,6 +94,13 @@ const translations = {
     "labelConfig.title": "Label Configuration",
     "labelConfig.cycleColor": "Click to cycle color",
 
+    // Spacings
+    "spacings.title": "Voxel Spacings",
+    "spacings.unitPerPixel": "µm / pixel",
+    "spacings.unitPerSlice": "µm / slice",
+    "spacings.help":
+      "Used for ETDRS, thickness, and volume calculations. Defaults: X 11.54, Y 3.87, Z 246.0.",
+
     // Image viewer
     "viewer.loading": "Loading...",
     "viewer.hideEdges": "Hide edges",
@@ -317,6 +324,13 @@ const translations = {
     // Label config
     "labelConfig.title": "Etiket Yapılandırması",
     "labelConfig.cycleColor": "Renk değiştirmek için tıklayın",
+
+    // Spacings
+    "spacings.title": "Voksel Aralıkları",
+    "spacings.unitPerPixel": "µm / piksel",
+    "spacings.unitPerSlice": "µm / kesit",
+    "spacings.help":
+      "ETDRS, kalınlık ve hacim hesaplamalarında kullanılır. Varsayılan: X 11,54, Y 3,87, Z 246,0.",
 
     // Image viewer
     "viewer.loading": "Yükleniyor...",

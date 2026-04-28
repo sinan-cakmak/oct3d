@@ -1,5 +1,11 @@
 import Dexie, { type EntityTable } from "dexie";
-import type { Patient, PatientImage } from "./types";
+import {
+  type Patient,
+  type PatientImage,
+  DEFAULT_X_SPACING,
+  DEFAULT_Y_SPACING,
+  DEFAULT_Z_SPACING,
+} from "./types";
 
 const db = new Dexie("oct3d") as Dexie & {
   patients: EntityTable<Patient, "id">;
@@ -25,6 +31,18 @@ db.version(2).stores({
   });
 });
 
+// v3: added per-patient X/Y/Z spacings (µm/px, µm/px, µm/slice)
+db.version(3).stores({
+  patients: "id, createdAt",
+  images: "id, patientId, [patientId+type], [patientId+type+eye]",
+}).upgrade((tx) => {
+  return tx.table("patients").toCollection().modify((p) => {
+    if (p.xSpacing == null) p.xSpacing = DEFAULT_X_SPACING;
+    if (p.ySpacing == null) p.ySpacing = DEFAULT_Y_SPACING;
+    if (p.zSpacing == null) p.zSpacing = DEFAULT_Z_SPACING;
+  });
+});
+
 export { db };
 
 // ---- Patient CRUD ----
@@ -39,8 +57,18 @@ export async function createPatient(name: string, eye: "OD" | "OS" = "OD"): Prom
     updatedAt: now,
     eye,
     labelConfig: {},
+    xSpacing: DEFAULT_X_SPACING,
+    ySpacing: DEFAULT_Y_SPACING,
+    zSpacing: DEFAULT_Z_SPACING,
   });
   return id;
+}
+
+export async function updatePatientSpacings(
+  id: string,
+  spacings: { xSpacing?: number; ySpacing?: number; zSpacing?: number }
+): Promise<void> {
+  await db.patients.update(id, { ...spacings, updatedAt: Date.now() });
 }
 
 export async function renamePatient(id: string, newName: string): Promise<void> {
